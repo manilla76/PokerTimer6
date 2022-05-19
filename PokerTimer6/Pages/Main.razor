@@ -1,0 +1,12 @@
+﻿@page "/main"
+<div class="grid"><div><TimerComponent/></div><div><RoundComponent/></div></div>
+
+@code {
+    
+    protected override Task OnInitializedAsync()
+    {
+        //Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        
+        return base.OnInitializedAsync();
+    }
+}

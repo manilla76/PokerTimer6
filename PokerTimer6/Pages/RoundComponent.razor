@@ -1,0 +1,69 @@
+﻿@inject GameService Game
+@implements IDisposable
+
+<h3>Upcoming Rounds</h3>
+@if (Game.Rounds.Count == 0)
+{
+    <p><em>Add Rounds</em></p>
+}
+else
+{
+    <table class="table table-striped" style="width:50%">
+        <thead>
+            <tr>
+                <th width="1%">-</th>
+                <th style="text-align:center" width="10%">SB</th>
+                <th style="text-align:center" width="10%">BB</th>
+                <th style="text-align:center" width="10%">Time</th>
+                <th/>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var round in Game.Rounds)
+            {
+                <tr>
+                    <td><button class="btn-close" @onclick="()=>Game.Rounds = new Queue<Round>(Game.Rounds.Where(r=>r!=round))"/></td>
+                    <td style="text-align:right">@round.SmallBlind</td>
+                    <td style="text-align:right">@round.BigBlind</td>
+                    <td style="text-align:right">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
+                    <td/>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+}
+<div class="row">
+    <div class="col-xl-2">BigBlind</div>
+    <div class="col-xl-2">Time(Minutes)</div>
+</div> 
+<div class="row">
+    <div class="col-xl-2"><input @bind="@bigBlind" style="width:70px"/></div>
+    <div class="col-xl-2"><input @bind="minutes" style="width:70px" /></div>
+    <div class="col-xl-1"><button @onclick="AddRound">Add</button></div>
+</div>
+
+
+@code {
+    uint round = 0;
+    uint smallBlind;
+    uint bigBlind;
+    TimeSpan time;
+    uint minutes;
+
+    protected override Task OnInitializedAsync()
+    {
+        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        return base.OnInitializedAsync();
+    }
+    public void AddRound()
+    {
+        round++;
+        Game.Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = bigBlind/2, BigBlind = bigBlind, RoundTime = new TimeSpan(0, (int)minutes,0) });
+    }
+
+    void IDisposable.Dispose()
+    {
+        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+    }
+}

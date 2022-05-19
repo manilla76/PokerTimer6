@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="mixkit-alarm-tone-996.wav\**" />
+    <Content Remove="mixkit-alarm-tone-996.wav\**" />
+    <EmbeddedResource Remove="mixkit-alarm-tone-996.wav\**" />
+    <None Remove="mixkit-alarm-tone-996.wav\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Sounds\mixkit-bell-notification-933.wav" />
+    <None Include="wwwroot\Sounds\mixkit-positive-notification-951.wav" />
+    <None Include="wwwroot\Sounds\mixkit-toy-robot-alert-2815.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PokerLibrary\PokerLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\Sounds\mixkit-bell-notification-933.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\Sounds\mixkit-positive-notification-951.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\Sounds\mixkit-toy-robot-alert-2815.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="pokerDb.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

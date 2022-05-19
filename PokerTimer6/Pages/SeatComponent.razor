@@ -1,0 +1,76 @@
+﻿@inject GameService Game
+
+@*<h3>SeatComponent</h3>*@
+
+@if (Game.Players.Count == 0)
+{
+    <p><em>Add Players</em></p>
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row">
+            @for (int i = 1; i <= (Game.ActiveList.Count / 10 + 1); i++)
+            {
+                <div class="col-lg-6 col-sm-12">
+                    <h2>Table @i</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Seat</th>
+                                <th/>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var player in Game.ActiveList.Where(p=>p.Player_Seat.TableNumber == @i).OrderBy(t=>t.Player_Seat.SeatNumber))
+                            {
+                                <tr>
+                                    <td>@player.Name</td>
+                                    <td align="center">@player.Player_Seat.SeatNumber</td>
+                                    <td/>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+<button @onclick="@ShufflePlayers">Randomize</button>
+Starting # of Players: @Game.StartingNumberOfPlayers
+@code {
+    private Random rng = new Random();
+    public void Shuffle<T>(IList<T> list)  
+    {  
+        int n = list.Count;  
+        while (n > 1) {  
+            n--;  
+            int k = rng.Next(n + 1);  
+            T value = list[k];  
+            list[k] = list[n];  
+            list[n] = value;  
+        } 
+    }
+    public void ShufflePlayers()
+    {
+        if (Game.ActiveList.Count == 0) 
+        { 
+            Game.StartingNumberOfPlayers = (uint)Game.Players.Count;
+            Game.SetActivePayout();
+        }
+        Game.ActiveList = Game.Players.Where(p => p.IsActive).ToList();
+        if (Game.ActiveList.Count == 0) return;
+        Shuffle<Player>(Game.ActiveList);
+        uint tableCount = (uint) (Game.ActiveList.Count - 1) / 10 + 1; 
+        if (tableCount > 0 & Game.ActiveList.Count > 0)
+        {
+            for (int i = 0; i < Game.ActiveList.Count; i++)
+            {
+                Game.ActiveList[i].Player_Seat.TableNumber = (uint)i % tableCount + 1;
+                Game.ActiveList[i].Player_Seat.SeatNumber = (uint)i / tableCount + 1;
+            }
+        }
+    }
+}

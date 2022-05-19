@@ -1,0 +1,45 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@inject GameService Game
+@implements IDisposable
+
+<div class="top-row">Payout</div>    
+<div class="sidebar-white">
+    <br />
+    @if (@Game.ActivePayout.Payouts.Count == 0)
+    {
+        <p>Waiting for tournament to begin....</p>
+    }
+    else
+    {
+        @foreach (var payout in @Game.ActivePayout.Payouts)
+        {
+            <ul>
+                <li>@payout</li>
+            </ul>
+            
+        }
+    }
+    <p>Current PrizePool: @Game.PrizeMoney</p>
+    <button @onclick="Game.AddPrizeMoney">Addon/Rebuy</button>
+</div>
+
+@code {
+    protected override Task OnInitializedAsync()
+    {
+        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+
+        Game.RoundPayoutsToNearest = int.Parse(Configuration["RoundPayoutsToNearest"]);
+        if (Game.Payouts.Count == 0)
+        {
+            Configuration.GetSection("Payouts").Bind(Game.Payouts);
+            Game.ActivePayout.Payouts = new();
+        }
+        return base.OnInitializedAsync();
+    }
+
+    void IDisposable.Dispose()
+    {
+        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+    }
+}

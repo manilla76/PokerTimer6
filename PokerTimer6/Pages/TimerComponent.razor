@@ -1,0 +1,71 @@
+﻿@inject TimerService TimerService
+@inject GameService Game
+@inject IJSRuntime _jsRuntime
+
+<audio id="alert" src="../Sounds/mixkit-bell-notification-933.wav"/>
+
+<div>
+@if (Game.Rounds.Count == 0)
+     {
+     <div>
+         <div class="timer-3" style="text-align:center;">SB / BB</div>
+         <br/>
+         <div class="timer-2" style="color:red; text-align:center;">- / -</div>
+     </div>
+     }
+else
+     {
+         <div>
+             <div class="timer-3" style="text-align:center">SB / BB</div>
+             <br/>
+             <div class="timer-2" style="color:red; text-align:center">@Game.CurrentRound?.SmallBlind / @Game.CurrentRound?.BigBlind</div>
+         </div>
+     }
+     <h1 class="timer" style="text-align:center">@TimerService.DisplayValue</h1>
+     <br />
+     <div style="text-align:center">
+        <button class="btn btn-outline" @onclick="() => { TimerService.StartPauseAsync(); ChangeIcon();}">
+            <i class="@IconString"/></button>
+        <button class="btn btn-outline-danger" @onclick="() => { GetNextRound(); }">
+            <i class="oi oi-media-step-forward"/></button>
+     </div>
+</div>
+@debugString
+@code
+{
+    public string IconString = "oi oi-media-play";
+    public bool roundsEntered = false;
+    private string debugString;
+    public void ChangeIcon(){
+        IconString = (TimerService.IsRunning) ? "oi oi-media-pause" : "oi oi-media-play";
+    }
+    protected override Task OnInitializedAsync()
+    {
+        roundsEntered = Game.Rounds.Count == 0;
+        TimerService.OnChange += ValueChanged;
+        return base.OnInitializedAsync();
+    }
+
+    private async void ValueChanged()
+    {        
+        if (TimerService.SoundAlert)
+        {
+            await PlaySound();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task GetNextRound()
+    {
+        if (Game.Rounds.Count > 0)
+        {
+            Game.SetCurrentRound();
+            TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);
+        }
+    }
+
+    public async Task PlaySound()
+    {
+        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");
+    }
+}

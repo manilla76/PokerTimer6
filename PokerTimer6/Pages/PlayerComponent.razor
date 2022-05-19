@@ -1,0 +1,79 @@
+﻿@inject GameService Game
+@implements IDisposable
+
+<div class="container-fluid">
+    <div class="row align-content-center text-center">
+        <div><h3>Registered Players</h3></div>
+    </div>
+</div>
+@if (Game.Players.Count == 0)
+{
+    <p><em>Add Players</em></p>
+}
+else
+{
+    <table class="table table-striped table-poker">
+        <thead>
+            <tr>
+                <th>-</th>
+                <th class="h5">Name</th>
+                <th class="h5">Table / Seat</th>
+                <th class="h5">StillPlaying?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var player in Game.Players)
+            {
+                <tr>
+                    <td><button @onclick="()=>Game.Players.Remove(player)"><i class="oi oi-trash"></i></button></td>
+                    <td class="h5">@player.Name</td>
+                    <td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
+                    <td><input type="checkbox" @bind="@player.IsActive"/></td>
+                    <td/>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p>Active players = @GetPlayerCount()</p>    
+}
+<input @ref="nameInput" @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>
+<br/>
+<label>Buy-In $<input class="m-lg-1" @bind="@GameService.BuyIn" style="width:70px"/></label><br />
+<button class="oi oi-reload" @onclick="@Game.ResetTournament"/>
+@code {
+    string playerName;
+    ElementReference nameInput;
+
+    public void AddPlayer()
+    {
+        if (Game.Players.Exists(p=>p.Name==playerName) | string.IsNullOrEmpty(playerName))  //if the player already exists or empty...return
+            return;
+        Game.AddPlayer(new Player(Game.GetNextPlayerId(), playerName));
+        StateHasChanged();
+        playerName = "";
+        nameInput.FocusAsync();
+    }
+
+    public int GetPlayerCount()
+    {
+        return Game.Players.Count(p => p.IsActive);
+    }
+
+    protected async Task KeyEnterPressed(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Enter")
+        {
+            AddPlayer();
+        }        
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        return base.OnInitializedAsync();
+    }
+    void IDisposable.Dispose()
+    {
+        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+    }
+}
