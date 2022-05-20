@@ -30,12 +30,10 @@ else
             <i class="oi oi-media-step-forward"/></button>
      </div>
 </div>
-@debugString
 @code
 {
     public string IconString = "oi oi-media-play";
     public bool roundsEntered = false;
-    private string debugString;
     public void ChangeIcon(){
         IconString = (TimerService.IsRunning) ? "oi oi-media-pause" : "oi oi-media-play";
     }

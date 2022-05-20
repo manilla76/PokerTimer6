@@ -12,7 +12,7 @@ namespace PokerTimer6.Data
         private bool isRunning = false;
 
         public bool IsRunning { get => isRunning; set { isRunning = value; NotifyDataChanged(); } }
-        public bool SoundAlert { get; set; } = false;
+        public bool SoundAlert { get => timeRemaining.TotalSeconds <= 0 & !isRunning;}
 
         private static Timer InternalTimer = new Timer((state) =>
         {
@@ -37,7 +37,6 @@ namespace PokerTimer6.Data
 
         public Task StartPauseAsync()
         {
-            SoundAlert = false;
             IsRunning = !IsRunning;
             if (IsRunning & timeRemaining.TotalSeconds > 0)
                 InternalTimer.Change(1000, 1000);
@@ -51,7 +50,6 @@ namespace PokerTimer6.Data
         {
             IsRunning = false;
             InternalTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            SoundAlert = true;
             NotifyDataChanged();
             return Task.CompletedTask;
         }
