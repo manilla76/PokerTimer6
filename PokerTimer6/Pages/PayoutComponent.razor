@@ -12,15 +12,17 @@
     }
     else
     {
+        <div class="col-5">
+        <ol style="text-align:right">
         @foreach (var payout in @Game.ActivePayout.Payouts)
         {
-            <ul>
-                <li>@payout</li>
-            </ul>
-            
+                <li>$@payout</li>
         }
+        </ol>
+        </div>
+        <div class="col-auto"/>
     }
-    <p>Current PrizePool: @Game.PrizeMoney</p>
+    <p>Current PrizePool: $@Game.PrizeMoney</p>
     <button @onclick="Game.AddPrizeMoney">Addon/Rebuy</button>
 </div>
 
