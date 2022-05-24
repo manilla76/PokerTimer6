@@ -10,8 +10,9 @@ namespace PokerTimer6.Data
         private static TimeSpan timeRemaining { get; set; }
 
         private bool isRunning = false;
-
+        public bool TimerEmpty { get => timeRemaining.Seconds <= 0; }
         public bool IsRunning { get => isRunning; set { isRunning = value; NotifyDataChanged(); } }
+
         public bool SoundAlert { get => timeRemaining.TotalSeconds <= 0 & !isRunning;}
 
         private static Timer InternalTimer = new Timer((state) =>

@@ -4,38 +4,41 @@
 
 <audio id="alert" src="../Sounds/mixkit-bell-notification-933.wav"/>
 
-<div>
-@if (Game.Rounds.Count == 0)
-     {
-     <div>
-         <div class="timer-3" style="text-align:center;">SB / BB</div>
+<div class="container-fluid">
+    <div class="text-center">
+         <p class="display-1">SB / BB</p>
          <br/>
-         <div class="timer-2" style="color:red; text-align:center;">- / -</div>
-     </div>
-     }
+@if (Game.CurrentRound is null)
+    {
+        <p class="display-1 text-danger">- / -</p>
+    }
 else
-     {
-         <div>
-             <div class="timer-3" style="text-align:center">SB / BB</div>
-             <br/>
-             <div class="timer-2" style="color:red; text-align:center">@Game.CurrentRound?.SmallBlind / @Game.CurrentRound?.BigBlind</div>
-         </div>
-     }
-     <h1 class="timer" style="text-align:center">@TimerService.DisplayValue</h1>
-     <br />
-     <div style="text-align:center">
-        <button class="btn btn-outline" @onclick="() => { TimerService.StartPauseAsync(); ChangeIcon();}">
-            <i class="@IconString"/></button>
-        <button class="btn btn-outline-danger" @onclick="() => { GetNextRound(); }">
-            <i class="oi oi-media-step-forward"/></button>
-     </div>
+    {
+        <p class="display-1 text-danger">@Game.CurrentRound.SmallBlind / @Game.CurrentRound.BigBlind</p>
+    }
+    </div>
+    <h1 class="timer" style="text-align:center">@TimerService.DisplayValue</h1>
+    <br />
+    <div style="text-align:center">
+    <button title="Play/Pause" disabled="@PlayButtonDisabled" class="btn btn-outline" @onclick="() => { TimerService.StartPauseAsync(); ChangeIcon();}">
+        <i class="@IconString"/></button>
+    <button title="Next Round" class="btn btn-outline-danger" @onclick="() => { GetNextRound(); }">
+        <i class="oi oi-media-step-forward"/></button>
+    </div>
 </div>
+@if (ErrorStringEmpty())
+{
+    <p>Error = @errorString</p>
+}
 @code
 {
     public string IconString = "oi oi-media-play";
+    private string errorString;
+    public bool PlayButtonDisabled = false;
     public bool roundsEntered = false;
     public void ChangeIcon(){
         IconString = (TimerService.IsRunning) ? "oi oi-media-pause" : "oi oi-media-play";
+        //PlayButtonDisabled = TimerService.TimerEmpty;
     }
     protected override Task OnInitializedAsync()
     {
@@ -43,22 +46,35 @@ else
         TimerService.OnChange += ValueChanged;
         return base.OnInitializedAsync();
     }
+    private bool ErrorStringEmpty() => !string.IsNullOrEmpty(errorString);
 
     private async void ValueChanged()
-    {        
-        if (TimerService.SoundAlert)
+    {       
+        try
         {
-            await PlaySound();
+            if (TimerService.SoundAlert)
+            {
+                await PlaySound();
+            }
         }
+        catch (Exception ex)
+        {
+            errorString = ex.Message;
+        }
+        ChangeIcon();
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task GetNextRound()
     {
-        if (Game.Rounds.Count > 0)
+        if (Game.Rounds.Count >= 0)
         {
             Game.SetCurrentRound();
             TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);
+            TimerService.IsRunning = false;
+            //smallBlind = Game.CurrentRound.SmallBlind.ToString() ?? "x";
+            //bigBlind = Game.CurrentRound.BigBlind.ToString() ?? "x";
+            ChangeIcon();
         }
     }
 

@@ -6,7 +6,7 @@ namespace PokerTimer6.Models
     {
         public uint Player_id { get; set; }
         [Required]
-        [StringLength(100, ErrorMessage = "Name is too long.")]
+        [StringLength(40, ErrorMessage = "Name is too long.")]
         public string Name { get; set; }
         public bool IsActive { get; set; } = true;
         public Seat Player_Seat { get; private set; }

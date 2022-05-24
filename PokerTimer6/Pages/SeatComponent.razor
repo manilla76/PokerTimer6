@@ -10,7 +10,7 @@ else
 {
     <div class="container-fluid">
         <div class="row">
-            @for (int i = 1; i <= (Game.ActiveList.Count / 10 + 1); i++)
+            @for (int i = 1; i <= (Game.ActiveList.Count - 1) / 10 + 1; i++)   // table count  0 = 0 table; 1-10 = 1 table; 11-20 = 2 table
             {
                 <div class="col-lg-6 col-sm-12">
                     <h2>Table @i</h2>
@@ -38,8 +38,9 @@ else
         </div>
     </div>
 }
-<button @onclick="@ShufflePlayers">Randomize</button>
-Starting # of Players: @Game.StartingNumberOfPlayers
+<button @onclick="@ShufflePlayers">Randomize</button> <br/>
+Starting # of Players: @Game.StartingNumberOfPlayers <br/>
+Current # of Players: @Game.ActiveList.Count
 @code {
     private Random rng = new Random();
     public void Shuffle<T>(IList<T> list)  
@@ -57,7 +58,7 @@ Starting # of Players: @Game.StartingNumberOfPlayers
     {
         if (Game.ActiveList.Count == 0) 
         { 
-            Game.StartingNumberOfPlayers = (uint)Game.Players.Count;
+            Game.StartingNumberOfPlayers = (uint)Game.Players.Count(p=>p.IsActive);
             Game.SetActivePayout();
         }
         Game.ActiveList = Game.Players.Where(p => p.IsActive).ToList();

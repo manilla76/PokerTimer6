@@ -1,0 +1,20 @@
+{
+  "compilers": {
+    "sass": {
+      "autoPrefix": "",
+      "loadPaths": "",
+      "style": "expanded",
+      "outputStyle":  "nested",
+      "relativeUrls": true,
+      "sourceMap": true,
+      "sourceMapRoot": ""
+    }
+  },
+  "minifiers": {
+    "css": {
+      "enabled": true,
+      "termSemicolons": true,
+      "gzip": false
+    }
+  }
+}

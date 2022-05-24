@@ -2,8 +2,8 @@
 @implements IDisposable
 
 <div class="container-fluid">
-    <div class="row align-content-center text-center">
-        <div><h3>Registered Players</h3></div>
+    <div class="row">
+        <h3 class="offset-1">Registered Players</h3>
     </div>
 </div>
 @if (Game.Players.Count == 0)
@@ -36,22 +36,25 @@ else
     </table>
     <p>Active players = @GetPlayerCount()</p>    
 }
-<input @ref="nameInput" @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>
+<EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <InputText @bind-Value="@playerModel.Name" placeholder="Name"/>
+    <button class="btn btn-outline-primary">Add</button> 
+</EditForm>
+@*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
 <br/>
 <label>Buy-In $<input class="m-lg-1" @bind="@GameService.BuyIn" style="width:70px"/></label><br />
-<button class="oi oi-reload" @onclick="@Game.ResetTournament"/>
+<button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
 @code {
-    string playerName;
-    ElementReference nameInput;
-
+    Player playerModel = new();
     public void AddPlayer()
     {
-        if (Game.Players.Exists(p=>p.Name==playerName) | string.IsNullOrEmpty(playerName))  //if the player already exists or empty...return
+        if (Game.Players.Exists(p=>p.Name==playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
             return;
-        Game.AddPlayer(new Player(Game.GetNextPlayerId(), playerName));
+        Game.AddPlayer(new Player(Game.GetNextPlayerId(), playerModel.Name));
         StateHasChanged();
-        playerName = "";
-        nameInput.FocusAsync();
+        playerModel.Name = "";
     }
 
     public int GetPlayerCount()
@@ -59,13 +62,16 @@ else
         return Game.Players.Count(p => p.IsActive);
     }
 
-    protected async Task KeyEnterPressed(KeyboardEventArgs eventArgs)
-    {
-        if (eventArgs.Key == "Enter")
-        {
-            AddPlayer();
-        }        
-    }
+    //private async Task myKeyPress(EditContext editContext, KeyboardEventArgs key)
+    //{
+    //    if (key.CtrlKey && key.Code == @"Enter")
+    //    {
+    //        if (editContext.Validate())
+    //        {
+    //            AddPlayer();
+    //        }
+    //    }
+    //}
 
     protected override Task OnInitializedAsync()
     {
