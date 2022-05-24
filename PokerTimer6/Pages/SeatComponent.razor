@@ -12,8 +12,9 @@ else
         <div class="row">
             @for (int i = 1; i <= (Game.ActiveList.Count - 1) / 10 + 1; i++)   // table count  0 = 0 table; 1-10 = 1 table; 11-20 = 2 table
             {
+                var table = i;
                 <div class="col-lg-6 col-sm-12">
-                    <h2>Table @i</h2>
+                    <button class="h2 btn btn-toolbar" @onclick="() => SetDealer(table)" title="Randomize dealer for this table.">Table @table</button>
                     <table class="table">
                         <thead>
                             <tr>
@@ -23,10 +24,15 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var player in Game.ActiveList.Where(p=>p.Player_Seat.TableNumber == @i).OrderBy(t=>t.Player_Seat.SeatNumber))
+                            @foreach (var player in Game.ActiveList.Where(p=>p.Player_Seat.TableNumber == @table).OrderBy(t=>t.Player_Seat.SeatNumber))
                             {
                                 <tr>
-                                    <td>@player.Name</td>
+                                    
+                                    @if (Game.Dealers.Count > 0 ? player.Player_Seat.SeatNumber == Game.Dealers[table - 1] : false )    // Check if this player is the dealer for this table
+                                    {
+                                        <td class="fw-bold fs-3 text-warning">@player.Name</td> }  // highlight dealer
+                                    else{
+                                        <td>@player.Name</td> }
                                     <td align="center">@player.Player_Seat.SeatNumber</td>
                                     <td/>
                                 </tr>
@@ -37,12 +43,14 @@ else
             }
         </div>
     </div>
+    <p class="fw-bold fs-6 text-warning">Dealer Highlighted</p>
 }
 <button @onclick="@ShufflePlayers">Randomize</button> <br/>
 Starting # of Players: @Game.StartingNumberOfPlayers <br/>
 Current # of Players: @Game.ActiveList.Count
 @code {
     private Random rng = new Random();
+    //private List<int> dealers = new();
     public void Shuffle<T>(IList<T> list)  
     {  
         int n = list.Count;  
@@ -73,5 +81,22 @@ Current # of Players: @Game.ActiveList.Count
                 Game.ActiveList[i].Player_Seat.SeatNumber = (uint)i / tableCount + 1;
             }
         }
+        Game.Dealers.Clear();
+        for (int i = 1; i <= tableCount; i++)
+        {
+            SetDealer(i);
+        }
+    }
+    public void SetDealer(int table)
+    {
+        if (Game.Dealers.Count >= table)
+        {
+            Game.Dealers[table - 1] = rng.Next(1, Game.ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1);
+        }
+        else
+        {
+            Game.Dealers.Add(rng.Next(1, Game.ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1));  // Set dealer per table 
+        }
+        //StateHasChanged();
     }
 }

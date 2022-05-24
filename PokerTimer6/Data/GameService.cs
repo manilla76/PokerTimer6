@@ -7,6 +7,7 @@ namespace PokerTimer6.Data
     {
         public List<Player> Players { get; set; } = new List<Player>();
         public List<Player> ActiveList { get; set; } = new List<Player>();
+        public List<int> Dealers { get; set; } = new List<int>();
         public uint PrizeMoney { get; set; }
         public List<Payout> Payouts { get; set; } = new ();
         public Payout? ActivePayout { get; private set; } = new();
