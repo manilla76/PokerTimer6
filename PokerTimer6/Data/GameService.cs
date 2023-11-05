@@ -1,5 +1,6 @@
 ﻿using PokerLibrary;
 using PokerTimer6.Models;
+using System;
 
 namespace PokerTimer6.Data
 {
@@ -144,54 +145,34 @@ namespace PokerTimer6.Data
             if (playerToSeat == null)
                 return;
             ActiveList.Add(playerToSeat);
-            switch (ActiveList.Count)
+
+            if (ActiveList.Count % 10 == 1)  // If a new table is needed, shuffle all players
             {
-                case <= 10:
-                    playerToSeat.Player_Seat.TableNumber = 1;
-                    playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count;
-                    break;
-                case 11:
-                    // Force a shuffle
-                    ShufflePlayers();
-                    break;
-                case <= 20:
-                    if (ActiveList.Count % 2 == 0) // add to table 2
-                    {
-                        playerToSeat.Player_Seat.TableNumber = 2;
-                        playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / 2;
-                    }
-                    else    // add to table 1
-                    {
-                        playerToSeat.Player_Seat.TableNumber = 1;
-                        playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / 2 + 1;
-                    }
-                    break;
-                case 21:
-                    //Force a shuffle
-                    ShufflePlayers();
-                    break;
-                case <= 30:
-                    if (ActiveList.Count % 3 == 0) // add to table 3
-                    {
-                        playerToSeat.Player_Seat.TableNumber = 3;
-                        playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / 3;
-                    }
-                    else if (ActiveList.Count % 3 == 2)  // add to table 2
-                    {
-                        playerToSeat.Player_Seat.TableNumber = 2;
-                        playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / 3 + 1;
-                    }
-                    else    // add to table 1
-                    {
-                        playerToSeat.Player_Seat.TableNumber = 1;
-                        playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / 3 + 1;
-                    }
-                    break;
-                default:
-                    break;
+                ShufflePlayers();
             }
-            PrizeMoney += BuyIn;
-            NotifyDataChanged();
+            else
+            {
+                // find the next open seat keeping all tables balanced
+                // get # of tables
+                // If this person fills the last table, fill it.  Otherwise, add to another table.
+                
+                int numberOfTables = (int)Math.Ceiling((double)ActiveList.Count / 10); 
+                if (ActiveList.Count % numberOfTables == 0)  
+                {
+                    playerToSeat.Player_Seat.TableNumber = (uint)numberOfTables;
+                    
+                }
+                else
+                {
+                    playerToSeat.Player_Seat.TableNumber = (uint)(ActiveList.Count % numberOfTables);
+                    // playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / (uint)numberOfTables + 1;
+                }
+                playerToSeat.Player_Seat.SeatNumber = (uint)Math.Ceiling((double)ActiveList.Count / (double)numberOfTables);
+            }
+
+            StartingNumberOfPlayers++;
+            AddPrizeMoney();
+            SetActivePayout();
         }
     }
 
