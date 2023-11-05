@@ -2,7 +2,7 @@
 
 namespace PokerTimer6.Data
 {
-    public class PayoutService
+    public class PayoutService : IPayoutService
     {
         public uint PrizeMoney { get; private set; }
         public static uint BuyIn { get; set; } = 50;
@@ -14,10 +14,6 @@ namespace PokerTimer6.Data
 
         private void NotifyDataChanged() => OnChange?.Invoke();
 
-        public PayoutService()
-        {
-            
-        }
         public void AddPrizeMoney()
         {
             PrizeMoney += BuyIn;

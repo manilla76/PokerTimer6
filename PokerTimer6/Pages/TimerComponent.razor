@@ -1,5 +1,5 @@
 ﻿@inject TimerService TimerService
-@inject GameService Game
+@inject IGameService Game
 @inject IJSRuntime _jsRuntime
 
 <audio id="alert" src="../Sounds/mixkit-bell-notification-933.wav"/>
@@ -10,7 +10,11 @@
          <br/>
 @if (Game.CurrentRound is null)
     {
-        <p class="display-1 text-danger">- / -</p>
+            <p class="display-1 text-danger">- / -</p>
+    }
+else if (Game.CurrentRound.SmallBlind == 0)
+    {
+        <p class="display-1 align-content-center text-primary">BREAK</p>    
     }
 else
     {

@@ -4,24 +4,23 @@ using System;
 
 namespace PokerTimer6.Data
 {
-    public class GameService
+    public class GameService : IGameService
     {
         public Queue<Round> Rounds { get; set; } = new Queue<Round>();
+        public Round? CurrentRound { get; set; }
 
-        public Round? CurrentRound;
-        
-        private readonly PlayerService playerService;
-        private readonly PayoutService payoutService;
+        private readonly IPlayerService playerService;
+        private readonly IPayoutService payoutService;
 
         public event Action? OnChange;
 
         private void NotifyDataChanged() => OnChange?.Invoke();
-        public GameService(PlayerService playerService, PayoutService payoutService)
+        public GameService(IPlayerService playerService, IPayoutService payoutService)
         {
             this.playerService = playerService;
             this.payoutService = payoutService;
         }
-                
+
         public void SetCurrentRound()
         {
             CurrentRound = Rounds.Dequeue();
@@ -40,7 +39,7 @@ namespace PokerTimer6.Data
         }
 
         public void ShufflePlayers()
-        { 
+        {
             playerService.ShufflePlayers();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }

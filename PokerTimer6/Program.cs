@@ -13,9 +13,9 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<TimerService>();
 builder.Services.AddTransient<IDataAccess, DataAccess>();
 builder.Services.AddTransient<IPokerData, PokerData>();
-builder.Services.AddSingleton<GameService>();
-builder.Services.AddSingleton<PlayerService>();
-builder.Services.AddSingleton<PayoutService>();
+builder.Services.AddSingleton<IPlayerService, PlayerService>();
+builder.Services.AddSingleton<IPayoutService, PayoutService>();
+builder.Services.AddSingleton<IGameService, GameService>();
 
 var app = builder.Build();
 

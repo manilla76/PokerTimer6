@@ -3,7 +3,7 @@ using PokerTimer6.Pages;
 
 namespace PokerTimer6.Data
 {
-    public class PlayerService
+    public class PlayerService : IPlayerService
     {
         private Random rng = new Random();
         public List<int> Dealers { get; set; } = new List<int>();
@@ -15,11 +15,6 @@ namespace PokerTimer6.Data
         public event Action? OnChange;
 
         private void NotifyDataChanged() => OnChange?.Invoke();
-
-        public PlayerService()
-        {
-            
-        }
 
         public uint GetNextPlayerId()
         {
@@ -120,8 +115,7 @@ namespace PokerTimer6.Data
                 list[n] = value;
             }
         }
-
-        internal void ResetPlayers()
+        public void ResetPlayers()
         {
             ActiveList.Clear();
             StartingNumberOfPlayers = 0;
