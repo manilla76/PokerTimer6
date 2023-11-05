@@ -39,8 +39,11 @@ else
 <EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
     <DataAnnotationsValidator/>
     <ValidationSummary/>
-    <InputText @bind-Value="@playerModel.Name" placeholder="Name"/>
-    <button class="btn btn-outline-primary">Add</button> 
+    <div class="input-group">
+        <InputText @bind-Value="@playerModel.Name" placeholder="Player Name" />
+        <button class="btn btn-outline-primary input-group-text">Add</button>
+    </div>
+    
 </EditForm>
 @*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
 <br/>
@@ -53,6 +56,10 @@ else
         if (Game.Players.Exists(p=>p.Name==playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
             return;
         Game.AddPlayer(new Player(Game.GetNextPlayerId(), playerModel.Name));
+        if (Game.PrizeMoney > 0)
+        {
+            Game.SetSeat();
+        }
         StateHasChanged();
         playerModel.Name = "";
     }

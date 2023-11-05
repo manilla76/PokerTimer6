@@ -1,4 +1,5 @@
 ﻿@inject GameService Game
+@implements IDisposable
 
 @*<h3>SeatComponent</h3>*@
 
@@ -14,7 +15,7 @@ else
             {
                 var table = i;
                 <div class="col-lg-6 col-sm-12">
-                    <button class="h2 btn btn-toolbar" @onclick="() => SetDealer(table)" title="Randomize dealer for this table.">Table @table</button>
+                    <button class="h2 btn btn-toolbar" @onclick="() => Game.SetDealer(table)" title="Randomize dealer for this table.">Table @table</button>
                     <table class="table">
                         <thead>
                             <tr>
@@ -45,58 +46,18 @@ else
     </div>
     <p class="fw-bold fs-6 text-warning">Dealer Highlighted</p>
 }
-<button @onclick="@ShufflePlayers">Randomize</button> <br/>
+<button @onclick="@Game.ShufflePlayers">Randomize</button> <br/>
 Starting # of Players: @Game.StartingNumberOfPlayers <br/>
 Current # of Players: @Game.ActiveList.Count
 @code {
-    private Random rng = new Random();
-    //private List<int> dealers = new();
-    public void Shuffle<T>(IList<T> list)  
-    {  
-        int n = list.Count;  
-        while (n > 1) {  
-            n--;  
-            int k = rng.Next(n + 1);  
-            T value = list[k];  
-            list[k] = list[n];  
-            list[n] = value;  
-        } 
-    }
-    public void ShufflePlayers()
+    protected override Task OnInitializedAsync()
     {
-        if (Game.ActiveList.Count == 0) 
-        { 
-            Game.StartingNumberOfPlayers = (uint)Game.Players.Count(p=>p.IsActive);
-            Game.SetActivePayout();
-        }
-        Game.ActiveList = Game.Players.Where(p => p.IsActive).ToList();
-        if (Game.ActiveList.Count == 0) return;
-        Shuffle<Player>(Game.ActiveList);
-        uint tableCount = (uint) (Game.ActiveList.Count - 1) / 10 + 1; 
-        if (tableCount > 0 & Game.ActiveList.Count > 0)
-        {
-            for (int i = 0; i < Game.ActiveList.Count; i++)
-            {
-                Game.ActiveList[i].Player_Seat.TableNumber = (uint)i % tableCount + 1;
-                Game.ActiveList[i].Player_Seat.SeatNumber = (uint)i / tableCount + 1;
-            }
-        }
-        Game.Dealers.Clear();
-        for (int i = 1; i <= tableCount; i++)
-        {
-            SetDealer(i);
-        }
+        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        return base.OnInitializedAsync();
     }
-    public void SetDealer(int table)
+    void IDisposable.Dispose()
     {
-        if (Game.Dealers.Count >= table)
-        {
-            Game.Dealers[table - 1] = rng.Next(1, Game.ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1);
-        }
-        else
-        {
-            Game.Dealers.Add(rng.Next(1, Game.ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1));  // Set dealer per table 
-        }
-        //StateHasChanged();
+        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
     }
+
 }

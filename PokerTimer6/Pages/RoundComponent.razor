@@ -12,9 +12,9 @@ else
         <thead>
             <tr>
                 <th width="1%">-</th>
-                <th class="text-center">SB</th>
-                <th class="text-center">BB</th>
-                <th style="text-center">Time</th>
+                <th class="text-center, fw-bold">SB</th>
+                <th class="text-center, fw-bold">BB</th>
+                <th style="text-center, fw-bold">Time</th>
                 <th/>
             </tr>
         </thead>
@@ -23,8 +23,15 @@ else
             {
                 <tr>
                     <td><button class="btn-close" @onclick="()=>Game.Rounds = new Queue<Round>(Game.Rounds.Where(r=>r!=round))"/></td>
+                    @if(@round.SmallBlind == 0)
+                    {
+                        <td class="text-center text-primary" colspan="2">Break</td>
+                        
+                    }
+                    else{
                     <td class="text-end">@round.SmallBlind</td>
                     <td class="text-end">@round.BigBlind</td>
+                    }
                     <td class="text-end">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
                     <td/>
                 </tr>
