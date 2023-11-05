@@ -1,9 +1,10 @@
-﻿@inject GameService Game
+﻿@inject PlayerService Player
+@inject GameService Game
 @implements IDisposable
 
 @*<h3>SeatComponent</h3>*@
 
-@if (Game.Players.Count == 0)
+@if (Player.Players.Count == 0)
 {
     <p><em>Add Players</em></p>
 }
@@ -11,11 +12,11 @@ else
 {
     <div class="container-fluid">
         <div class="row">
-            @for (int i = 1; i <= (Game.ActiveList.Count - 1) / 10 + 1; i++)   // table count  0 = 0 table; 1-10 = 1 table; 11-20 = 2 table
+            @for (int i = 1; i <= (Player.ActiveList.Count - 1) / 10 + 1; i++)   // table count  0 = 0 table; 1-10 = 1 table; 11-20 = 2 table
             {
                 var table = i;
                 <div class="col-lg-6 col-sm-12">
-                    <button class="h2 btn btn-toolbar" @onclick="() => Game.SetDealer(table)" title="Randomize dealer for this table.">Table @table</button>
+                    <button class="h2 btn btn-toolbar" @onclick="() => Player.SetDealer(table)" title="Randomize dealer for this table.">Table @table</button>
                     <table class="table">
                         <thead>
                             <tr>
@@ -25,11 +26,11 @@ else
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var player in Game.ActiveList.Where(p=>p.Player_Seat.TableNumber == @table).OrderBy(t=>t.Player_Seat.SeatNumber))
+                            @foreach (var player in Player.ActiveList.Where(p=>p.Player_Seat.TableNumber == @table).OrderBy(t=>t.Player_Seat.SeatNumber))
                             {
                                 <tr>
                                     
-                                    @if (Game.Dealers.Count > 0 ? player.Player_Seat.SeatNumber == Game.Dealers[table - 1] : false )    // Check if this player is the dealer for this table
+                                    @if (Player.Dealers.Count > 0 ? player.Player_Seat.SeatNumber == Player.Dealers[table - 1] : false )    // Check if this player is the dealer for this table
                                     {
                                         <td class="fw-bold fs-3 text-warning">@player.Name</td> }  // highlight dealer
                                     else{
@@ -47,17 +48,17 @@ else
     <p class="fw-bold fs-6 text-warning">Dealer Highlighted</p>
 }
 <button @onclick="@Game.ShufflePlayers">Randomize</button> <br/>
-Starting # of Players: @Game.StartingNumberOfPlayers <br/>
-Current # of Players: @Game.ActiveList.Count
+Starting # of Players: @Player.StartingNumberOfPlayers <br/>
+Current # of Players: @Player.ActiveList.Count
 @code {
     protected override Task OnInitializedAsync()
     {
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
         return base.OnInitializedAsync();
     }
     void IDisposable.Dispose()
     {
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
     }
 
 }

@@ -14,6 +14,8 @@ builder.Services.AddSingleton<TimerService>();
 builder.Services.AddTransient<IDataAccess, DataAccess>();
 builder.Services.AddTransient<IPokerData, PokerData>();
 builder.Services.AddSingleton<GameService>();
+builder.Services.AddSingleton<PlayerService>();
+builder.Services.AddSingleton<PayoutService>();
 
 var app = builder.Build();
 

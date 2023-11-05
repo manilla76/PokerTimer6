@@ -1,4 +1,6 @@
 ﻿@inject GameService Game
+@inject PlayerService Player
+@inject PayoutService Payout
 @implements IDisposable
 
 <div class="container-fluid">
@@ -6,7 +8,7 @@
         <h3 class="offset-1">Registered Players</h3>
     </div>
 </div>
-@if (Game.Players.Count == 0)
+@if (Player.Players.Count == 0)
 {
     <p><em>Add Players</em></p>
 }
@@ -22,10 +24,10 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var player in Game.Players)
+            @foreach (var player in Player.Players)
             {
                 <tr>
-                    <td><button @onclick="()=>Game.Players.Remove(player)"><i class="oi oi-trash"></i></button></td>
+                    <td><button @onclick="()=>Player.Players.Remove(player)"><i class="oi oi-trash"></i></button></td>
                     <td class="h5">@player.Name</td>
                     <td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
                     <td><input type="checkbox" @bind="@player.IsActive"/></td>
@@ -47,18 +49,18 @@ else
 </EditForm>
 @*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
 <br/>
-<label>Buy-In $<input class="m-lg-1" @bind="@GameService.BuyIn" style="width:70px"/></label><br />
+<label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px"/></label><br />
 <button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
 @code {
     Player playerModel = new();
     public void AddPlayer()
     {
-        if (Game.Players.Exists(p=>p.Name==playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
+        if (Player.Players.Exists(p=>p.Name==playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
             return;
-        Game.AddPlayer(new Player(Game.GetNextPlayerId(), playerModel.Name));
-        if (Game.PrizeMoney > 0)
+        Player.AddPlayer(new Player(Player.GetNextPlayerId(), playerModel.Name));
+        if (Payout.PrizeMoney > 0)
         {
-            Game.SetSeat();
+            Game.AddSeat();
         }
         StateHasChanged();
         playerModel.Name = "";
@@ -66,7 +68,7 @@ else
 
     public int GetPlayerCount()
     {
-        return Game.Players.Count(p => p.IsActive);
+        return Player.Players.Count(p => p.IsActive);
     }
 
     //private async Task myKeyPress(EditContext editContext, KeyboardEventArgs key)
@@ -83,10 +85,14 @@ else
     protected override Task OnInitializedAsync()
     {
         Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Payout.OnChange += async () => await InvokeAsync(StateHasChanged);
         return base.OnInitializedAsync();
     }
     void IDisposable.Dispose()
     {
         Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Payout.OnChange -= async () => await InvokeAsync(StateHasChanged);
     }
 }
