@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerLibrary", "PokerLibrar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadLibrary", "SheepheadLibrary\SheepheadLibrary.csproj", "{F7868D82-980C-497F-A049-3D4E2D0E68F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepheadConsole", "SheepheadConsole\SheepheadConsole.csproj", "{E4E8829C-1966-4CC5-9583-46E55B63A2D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadConsole", "SheepheadConsole\SheepheadConsole.csproj", "{E4E8829C-1966-4CC5-9583-46E55B63A2D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

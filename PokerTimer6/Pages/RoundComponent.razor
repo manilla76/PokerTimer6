@@ -1,89 +1,20 @@
 ﻿@inject IGameService Game
-@implements IDisposable
-
-<h3>Upcoming Rounds</h3>
-@if (Game.Rounds.Count == 0)
+<td>
+    <button class="btn-close" @onclick="()=>Game.Rounds = new Queue<Round>(Game.Rounds.Where(r=>r!=round))" />
+</td>
+@if (@round.SmallBlind == 0)
 {
-    <p><em>Add Rounds</em></p>
+    <td class="text-center text-primary" colspan="2">Break</td>
 }
 else
 {
-    <table class="table table-striped" style="width:50%">
-        <thead>
-            <tr>
-                <th width="1%">-</th>
-                <th class="text-center, fw-bold">SB</th>
-                <th class="text-center, fw-bold">BB</th>
-                <th style="text-center, fw-bold">Time</th>
-                <th/>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var round in Game.Rounds)
-            {
-                <tr>
-                    <td><button class="btn-close" @onclick="()=>Game.Rounds = new Queue<Round>(Game.Rounds.Where(r=>r!=round))"/></td>
-                    @if(@round.SmallBlind == 0)
-                    {
-                        <td class="text-center text-primary" colspan="2">Break</td>
-                        
-                    }
-                    else{
-                    <td class="text-end">@round.SmallBlind</td>
-                    <td class="text-end">@round.BigBlind</td>
-                    }
-                    <td class="text-end">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
-                    <td/>
-                </tr>
-            }
-        </tbody>
-    </table>
-    
+    <td class="text-end">@round.SmallBlind</td>
+    <td class="text-end">@round.BigBlind</td>
 }
-<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row p-2">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-    <div class="col-3 mr-0">
-        <label>BigBlind</label>
-        <InputNumber id="bigBlind" @bind-Value="roundModel.BigBlind" class="form-control"/>
-    </div>
-    <div class="col-3 mr-0">
-        <label>Minutes</label>   
-        <InputNumber id="minutes" @bind-Value="roundModel.RoundMinutes" class="form-control"/>
-    </div>
-    <div class="col-auto">
-        <button class="btn btn-outline-primary mt-4">Add</button>
-    </div>
-
-</EditForm>
+<td class="text-end">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
+<td />
 
 @code {
-    private Round roundModel = new();
-    int round = 0;
-    int smallBlind;
-    int bigBlind;
-    TimeSpan time;
-    int minutes;
-
-    protected override Task OnInitializedAsync()
-    {
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
-    }
-    public void AddRound()
-    {
-        round++;
-        Game.Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = roundModel.BigBlind/2 ?? 0, BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, roundModel.RoundMinutes,0) });
-        roundModel.BigBlind = null;
-    }
-
-    void IDisposable.Dispose()
-    {
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
-    }
-
-    void HandleValidSubmit()
-    {
-        AddRound();
-    }
+    [Parameter]
+    public Round round { get; set; } = new Round();
 }
