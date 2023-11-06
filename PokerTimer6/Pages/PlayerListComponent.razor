@@ -1,0 +1,54 @@
+﻿@inject IPlayerService Player
+@implements IDisposable
+
+<div class="container-fluid">
+    <div class="row">
+        <h3 class="offset-1">Registered Players</h3>
+    </div>
+</div>
+@if (Player.Players.Count == 0)
+{
+    <p><em>Add Players</em></p>
+}
+else
+{
+    <table class="table table-striped table-poker">
+        <thead>
+            <tr>
+                <th>-</th>
+                <th class="h5">Name</th>
+                <th class="h5">Table / Seat</th>
+                <th class="h5">StillPlaying?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var player in Player.Players)
+            {
+                <tr>
+                    <PlayerComponent player="player" players="Player.Players"/>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <p>Active players = @GetPlayerCount()</p>    
+}
+<AddPlayerComponent playerModel="playerModel"/>
+
+@code {
+    Player playerModel = new();
+
+    public int GetPlayerCount()
+    {
+        return Player.Players.Count(p => p.IsActive);
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
+        return base.OnInitializedAsync();
+    }
+    void IDisposable.Dispose()
+    {
+        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
+    }
+}

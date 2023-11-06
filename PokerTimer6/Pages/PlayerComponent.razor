@@ -1,98 +1,12 @@
-﻿@inject IGameService Game
-@inject IPlayerService Player
-@inject IPayoutService Payout
-@implements IDisposable
+﻿<td><button @onclick="()=>players.Remove(player)"><i class="oi oi-trash"></i></button></td>
+<td class="h5">@player.Name</td>
+<td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
+<td><input type="checkbox" @bind="@player.IsActive" /></td>
+<td />
 
-<div class="container-fluid">
-    <div class="row">
-        <h3 class="offset-1">Registered Players</h3>
-    </div>
-</div>
-@if (Player.Players.Count == 0)
-{
-    <p><em>Add Players</em></p>
-}
-else
-{
-    <table class="table table-striped table-poker">
-        <thead>
-            <tr>
-                <th>-</th>
-                <th class="h5">Name</th>
-                <th class="h5">Table / Seat</th>
-                <th class="h5">StillPlaying?</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var player in Player.Players)
-            {
-                <tr>
-                    <td><button @onclick="()=>Player.Players.Remove(player)"><i class="oi oi-trash"></i></button></td>
-                    <td class="h5">@player.Name</td>
-                    <td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
-                    <td><input type="checkbox" @bind="@player.IsActive"/></td>
-                    <td/>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <p>Active players = @GetPlayerCount()</p>    
-}
-<EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-    <div class="input-group">
-        <InputText @bind-Value="@playerModel.Name" placeholder="Player Name" />
-        <button class="btn btn-outline-primary input-group-text">Add</button>
-    </div>
-    
-</EditForm>
-@*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
-<br/>
-<label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px"/></label><br />
-<button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
 @code {
-    Player playerModel = new();
-    public void AddPlayer()
-    {
-        if (Player.Players.Exists(p=>p.Name==playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
-            return;
-        Player.AddPlayer(new Player(Player.GetNextPlayerId(), playerModel.Name));
-        if (Payout.PrizeMoney > 0)
-        {
-            Game.AddSeat();
-        }
-        StateHasChanged();
-        playerModel.Name = "";
-    }
-
-    public int GetPlayerCount()
-    {
-        return Player.Players.Count(p => p.IsActive);
-    }
-
-    //private async Task myKeyPress(EditContext editContext, KeyboardEventArgs key)
-    //{
-    //    if (key.CtrlKey && key.Code == @"Enter")
-    //    {
-    //        if (editContext.Validate())
-    //        {
-    //            AddPlayer();
-    //        }
-    //    }
-    //}
-
-    protected override Task OnInitializedAsync()
-    {
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
-        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
-        Payout.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
-    }
-    void IDisposable.Dispose()
-    {
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
-        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
-        Payout.OnChange -= async () => await InvokeAsync(StateHasChanged);
-    }
+    [Parameter]
+    public List<Player> players { get; set; } = new();
+    [Parameter]
+    public Player player { get; set; } = new Player();
 }
