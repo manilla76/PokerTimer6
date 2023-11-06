@@ -9,7 +9,9 @@ namespace PokerTimer6.Data
 
         event Action? OnChange;
 
+        void AddRound(Round roundModel);
         void AddSeat();
+        void RemoveRound(Round round);
         void ResetTournament();
         void SetActivePayout();
         void SetCurrentRound();

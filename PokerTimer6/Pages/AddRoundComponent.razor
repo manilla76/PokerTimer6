@@ -1,0 +1,32 @@
+﻿@inject IGameService Game
+
+<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row p-2">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="col-3 mr-0">
+        <label>BigBlind</label>
+        <InputNumber id="bigBlind" @bind-Value="roundModel.BigBlind" class="form-control" />
+    </div>
+    <div class="col-3 mr-0">
+        <label>Minutes</label>
+        <InputNumber id="minutes" @bind-Value="roundModel.RoundMinutes" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary mt-4">Add</button>
+    </div>
+
+</EditForm>
+
+@code {
+    public Round roundModel { get; set; } = new();
+    private int round = 0;
+    void HandleValidSubmit()
+    {
+        AddRound();
+    }
+    public void AddRound()
+    {
+        Game.AddRound(roundModel);
+    }
+
+}

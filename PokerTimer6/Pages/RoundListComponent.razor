@@ -27,52 +27,19 @@ else
             }
         </tbody>
     </table>
-    
 }
-<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row p-2">
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-    <div class="col-3 mr-0">
-        <label>BigBlind</label>
-        <InputNumber id="bigBlind" @bind-Value="roundModel.BigBlind" class="form-control"/>
-    </div>
-    <div class="col-3 mr-0">
-        <label>Minutes</label>   
-        <InputNumber id="minutes" @bind-Value="roundModel.RoundMinutes" class="form-control"/>
-    </div>
-    <div class="col-auto">
-        <button class="btn btn-outline-primary mt-4">Add</button>
-    </div>
+<AddRoundComponent/>
 
-</EditForm>
 
 @code {
-    private Round roundModel = new();
-    int round = 0;
-    int smallBlind;
-    int bigBlind;
-    TimeSpan time;
-    int minutes;
-
     protected override Task OnInitializedAsync()
     {
         Game.OnChange += async () => await InvokeAsync(StateHasChanged);
         return base.OnInitializedAsync();
     }
-    public void AddRound()
-    {
-        round++;
-        Game.Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = roundModel.BigBlind/2 ?? 0, BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, roundModel.RoundMinutes,0) });
-        roundModel.BigBlind = null;
-    }
 
     void IDisposable.Dispose()
     {
         Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
-    }
-
-    void HandleValidSubmit()
-    {
-        AddRound();
     }
 }

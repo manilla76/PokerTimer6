@@ -1,6 +1,6 @@
 ﻿@inject IGameService Game
 <td>
-    <button class="btn-close" @onclick="()=>Game.Rounds = new Queue<Round>(Game.Rounds.Where(r=>r!=round))" />
+    <button class="btn-close" @onclick="()=>Game.RemoveRound(round)" />
 </td>
 @if (@round.SmallBlind == 0)
 {

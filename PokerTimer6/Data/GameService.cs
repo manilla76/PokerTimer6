@@ -1,4 +1,5 @@
 ﻿using PokerLibrary;
+using PokerLibrary.Models;
 using PokerTimer6.Models;
 using System;
 
@@ -11,6 +12,7 @@ namespace PokerTimer6.Data
 
         private readonly IPlayerService playerService;
         private readonly IPayoutService payoutService;
+        private int round = 0;
 
         public event Action? OnChange;
 
@@ -50,7 +52,19 @@ namespace PokerTimer6.Data
             payoutService.AddPrizeMoney();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
+        public void AddRound(Round roundModel)
+        {
+            round++;
+            Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = roundModel.BigBlind / 2 ?? 0, BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, roundModel.RoundMinutes, 0) });
+            roundModel.BigBlind = null;
+            NotifyDataChanged();
+        }
 
+        public void RemoveRound(Round round)
+        {
+            Rounds = new Queue<Round>(Rounds.Where(r => r != round));
+            NotifyDataChanged();
+        }
     }
 
 
