@@ -30,6 +30,12 @@ namespace PokerTimer6.Data
             //DataAccess.Add(sql, DataAccess.GetConstructionString());
         }
 
+        public void RemovePlayer(Player player)
+        {
+            Players.Remove(player);
+            NotifyDataChanged();
+        }
+
         public void ShufflePlayers()
         {
             if (ActiveList.Count == 0)

@@ -1,12 +1,12 @@
-﻿<td><button @onclick="()=>players.Remove(player)"><i class="oi oi-trash"></i></button></td>
+﻿@inject IPlayerService Player
+
+<td><button @onclick="()=>Player.RemovePlayer(player)"><i class="oi oi-trash"></i></button></td>
 <td class="h5">@player.Name</td>
 <td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
 <td><input type="checkbox" @bind="@player.IsActive" /></td>
 <td />
 
 @code {
-    [Parameter]
-    public List<Player> players { get; set; } = new();
     [Parameter]
     public Player player { get; set; } = new Player();
 }

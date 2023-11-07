@@ -6,7 +6,7 @@
 
 @if (Player.Players.Count == 0)
 {
-    <p><em>Add Players</em></p>
+    <p><em>Add Players</em></p>  
 }
 else
 {
@@ -32,7 +32,7 @@ else
                                     
                                     @if (Player.Dealers.Count > 0 ? player.Player_Seat.SeatNumber == Player.Dealers[table - 1] : false )    // Check if this player is the dealer for this table
                                     {
-                                        <td class="fw-bold fs-3 text-warning">@player.Name</td> }  // highlight dealer
+                                        <td class="fw-bold fs-4 text-warning">@player.Name</td> }  // highlight dealer
                                     else{
                                         <td>@player.Name</td> }
                                     <td align="center">@player.Player_Seat.SeatNumber</td>

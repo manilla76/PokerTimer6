@@ -19,5 +19,6 @@ namespace PokerTimer6.Data
         void Shuffle<T>(IList<T> list);
         void ShufflePlayers();
         void ResetPlayers();
+        void RemovePlayer(Player player);
     }
 }
