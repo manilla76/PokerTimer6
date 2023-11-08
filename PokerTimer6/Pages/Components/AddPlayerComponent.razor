@@ -17,7 +17,8 @@
 <label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px" /></label>
 <br />
 <button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
-
+<button class="oi oi-data-transfer-upload" @onclick="Game.SavePlayers" title="Save Player List"/>
+<button class="oi oi-data-transfer-download" @onclick="Game.LoadPlayers" title="Load Player List" />
 @code {
     [Parameter]
     public Player playerModel { get; set; } = new Player();

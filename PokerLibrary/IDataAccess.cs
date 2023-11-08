@@ -7,5 +7,6 @@ namespace PokerLibrary
 
         Task<List<T>> LoadData<T, U>(string sql, U parameters);
         Task SaveData<T>(string sql, T parameters);
+        Task SaveData<T>(string sql, List<T> parameters);
     }
 }

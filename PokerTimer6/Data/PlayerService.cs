@@ -21,6 +21,7 @@ namespace PokerTimer6.Data
             NextPlayerId++;
             return NextPlayerId;
         }
+
         public void AddPlayer(Player player)
         {
             Players.Add(player);  // probably should check for duplicates
@@ -127,5 +128,6 @@ namespace PokerTimer6.Data
             StartingNumberOfPlayers = 0;
             NotifyDataChanged();
         }
+
     }
 }

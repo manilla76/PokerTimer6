@@ -1,0 +1,74 @@
+﻿@page "/Analysis"
+@inject IPlayerService Player
+@inject IPayoutService Payout
+@inject IGameService Game
+@implements IDisposable
+
+<h3>Blind Analysis</h3>
+
+StartingStack
+<div class="input-group">
+    <InputNumber id="StackSize" @bind-Value="StartingStack"/>
+    <button class="btn btn-outline-primary input-group-text">Modify</button>
+</div>
+TotalChips = @TotalChips
+<table class="table-bordered">
+    <thead>
+        <tr>
+            <th>BB</th>
+            <th>Mult</th>
+            <th>Estimated # of players</th>
+            <th>BB per StartingStack</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var round in Game.Rounds)
+    {
+        <tr>
+            <td class="p-3">@round.BigBlind</td>
+            <td class="p-1">@(TotalChips / round.BigBlind)</td>
+                @if (TotalChips / round.BigBlind / 10 < 10)
+                {
+                    <td class="p-1 bg-danger">@(TotalChips / round.BigBlind / 10)</td>
+                }
+                else if(TotalChips / round.BigBlind / 10 < Player.StartingNumberOfPlayers)
+                {
+                    <td class="p-1 bg-info">@(TotalChips / round.BigBlind / 10)</td>
+                } 
+                else
+                {
+                    <td class="p-1">@(TotalChips / round.BigBlind / 10)</td>
+                }
+                
+                @if (StartingStack / round.BigBlind > 10 & StartingStack / round.BigBlind < 20)
+                {
+                <td class="p-1 bg-info">@(StartingStack / round.BigBlind)</td>
+            }
+            else{
+                <td class="p-1">@(StartingStack / round.BigBlind)</td>
+            }
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+@code {
+    int StartingStack = 15000;
+    public int TotalChips { get { return (int)(Payout.PrizeMoney / PayoutService.BuyIn) * StartingStack; } }
+
+    protected override Task OnInitializedAsync()
+    {
+        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Payout.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        return base.OnInitializedAsync();
+    }
+
+    void IDisposable.Dispose()
+    {
+        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Payout.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+    }
+}

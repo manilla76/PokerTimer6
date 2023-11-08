@@ -23,13 +23,20 @@ namespace PokerTimer6.Data
         public void SetActivePayout(uint StartingNumberOfPlayers)
         {
             ActivePayout = Payouts.First(p => p.MinNumberOfPlayers <= StartingNumberOfPlayers & p.MaxNumberOfPlayers >= StartingNumberOfPlayers);
-            PrizeMoney = StartingNumberOfPlayers * BuyIn;
+            if (PrizeMoney == 0)
+            {
+                PrizeMoney = StartingNumberOfPlayers * BuyIn;   // If this is the first time, initialize prizemoney.
+            }
             CalculatePayout();
             NotifyDataChanged();
         }
         public void CalculatePayout()
         {
             ActivePayout.Payouts.Clear();
+            if (ActivePayout.PayoutPercents is null)
+            {
+                return;
+            }
             for (int i = 0; i < ActivePayout.PayoutPercents.Count - 1; i++)
             {
                 var payout = ActivePayout.PayoutPercents[i] * PrizeMoney;

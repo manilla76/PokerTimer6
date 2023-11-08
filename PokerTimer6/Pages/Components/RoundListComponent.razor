@@ -27,9 +27,11 @@ else
             }
         </tbody>
     </table>
+
 }
 <AddRoundComponent/>
-
+<button class="oi oi-data-transfer-upload" @onclick="Game.SaveRoundLayoutAsync" title="Save Round List" />
+<button class="oi oi-data-transfer-download" @onclick="Game.LoadRoundLayoutAsync" title="Load Round List" />
 
 @code {
     protected override Task OnInitializedAsync()

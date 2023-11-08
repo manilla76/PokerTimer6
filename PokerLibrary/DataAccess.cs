@@ -35,5 +35,14 @@ namespace PokerLibrary
                 var data = await connection.ExecuteAsync(sql, parameters);
             }
         }
+
+        public async Task SaveData<T>(string sql, List<T> parameters)
+        {
+            string connectionString = config.GetConnectionString(ConnectionStringName);
+            using (IDbConnection connection = new SQLiteConnection(connectionString))
+            {
+                var data = await connection.ExecuteAsync(sql, parameters);
+            }
+        }
     }
 }
