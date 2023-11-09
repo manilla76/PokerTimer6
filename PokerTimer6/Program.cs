@@ -2,15 +2,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using PokerLibrary;
 using PokerTimer6.Data;
-
+using PokerTimer6.Data.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<TimerService>();
+builder.Services.AddSingleton<ITimerService, TimerService>();
 builder.Services.AddTransient<IDataAccess, DataAccess>();
 builder.Services.AddTransient<IPokerData, PokerData>();
 builder.Services.AddSingleton<IPlayerService, PlayerService>();

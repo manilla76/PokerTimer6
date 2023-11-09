@@ -1,11 +1,11 @@
 ﻿using PokerTimer6.Models;
 
-namespace PokerTimer6.Data
+namespace PokerTimer6.Data.Interfaces
 {
     public interface IGameService
     {
         Queue<Round> Rounds { get; set; }
-        Round? CurrentRound { get; set; }
+        Round CurrentRound { get; set; }
         event Action? OnChange;
         void AddRound(Round roundModel);
         void AddSeat();

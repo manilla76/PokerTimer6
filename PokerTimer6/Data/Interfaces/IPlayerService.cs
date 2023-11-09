@@ -1,6 +1,6 @@
 ﻿using PokerTimer6.Models;
 
-namespace PokerTimer6.Data
+namespace PokerTimer6.Data.Interfaces
 {
     public interface IPlayerService
     {

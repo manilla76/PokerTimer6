@@ -1,19 +1,24 @@
 ﻿using Microsoft.AspNetCore.Components;
+using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 
 namespace PokerTimer6.Data
 {
-    public class TimerService
+    public class TimerService : ITimerService
     {
         private static event EventHandler<TimerEventArgs>? OnTimerChanged;
-        
+
         private static TimeSpan timeRemaining { get; set; }
+        public bool TimerEmpty { get => timeRemaining.Seconds <= 0; }
 
         private bool isRunning = false;
-        public bool TimerEmpty { get => timeRemaining.Seconds <= 0; }
-        public bool IsRunning { get => isRunning; set { isRunning = value; NotifyDataChanged(); } }
+        public bool IsRunning
+        {
+            get => isRunning;
+            set { isRunning = value; NotifyDataChanged(); }
+        }
 
-        public bool SoundAlert { get => timeRemaining.TotalSeconds <= 0 & !isRunning;}
+        public bool SoundAlert { get => timeRemaining.TotalSeconds <= 0 & !isRunning; }
 
         private static Timer InternalTimer = new Timer((state) =>
         {
@@ -28,13 +33,14 @@ namespace PokerTimer6.Data
 
         private void NotifyDataChanged() => OnChange?.Invoke();
 
-        private string? displayValue;
-
-
-        public string? DisplayValue { 
+        private string displayValue = "oi oi-media-play";
+        public string DisplayValue
+        {
             get => displayValue;
-            set { displayValue = value; NotifyDataChanged(); } 
+            set { displayValue = value; NotifyDataChanged(); }
         }
+
+        public string IconString { get; private set; }
 
         public Task StartPauseAsync()
         {
@@ -42,7 +48,7 @@ namespace PokerTimer6.Data
             if (IsRunning & timeRemaining.TotalSeconds > 0)
                 InternalTimer.Change(1000, 1000);
             else
-                StopAsync();         
+                StopAsync();
 
             return Task.CompletedTask;
         }
@@ -61,12 +67,12 @@ namespace PokerTimer6.Data
             {
                 // Since we're not necessarily on the thread that has proper access to the renderer context
                 // we need to use the InvokeAsync() method, which takes care of running our code on the right thread.
-                CalculateDisplayValue();                
+                CalculateDisplayValue();
             };
 
             // Calculate the initial value for the timer.
             CalculateDisplayValue();
-            
+
         }
         public void SetTimeRemaining()
         {
@@ -80,13 +86,16 @@ namespace PokerTimer6.Data
             CalculateDisplayValue();
         }
         private void CalculateDisplayValue()
-        {   
+        {
             this.DisplayValue = $"{timeRemaining.Minutes}:{timeRemaining.Seconds.ToString("00")}";
             if (timeRemaining.TotalSeconds <= 0)
                 StopAsync();
-            
+
         }
-
-
+        public void ChangeIcon()
+        {
+            IconString = (IsRunning) ? "oi oi-media-pause" : "oi oi-media-play";
+            //PlayButtonDisabled = TimerService.TimerEmpty;
+        }
     }
 }

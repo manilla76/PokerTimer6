@@ -1,6 +1,7 @@
-﻿@inject TimerService TimerService
+﻿@inject ITimerService TimerService
 @inject IGameService Game
 @inject IJSRuntime _jsRuntime
+@implements IDisposable
 
 <audio id="alert" src="../Sounds/mixkit-bell-notification-933.wav"/>
 
@@ -24,9 +25,9 @@ else
     <h1 class="timer" style="text-align:center">@TimerService.DisplayValue</h1>
     <br />
     <div style="text-align:center">
-    <button title="Play/Pause" disabled="@PlayButtonDisabled" class="btn btn-outline" @onclick="() => { TimerService.StartPauseAsync(); ChangeIcon();}">
-        <i class="@IconString"/></button>
-    <button title="Next Round" class="btn btn-outline-danger" @onclick="() => { GetNextRound(); }">
+    <button title="Play/Pause" disabled="@PlayButtonDisabled" class="btn btn-outline" @onclick="async () => {await TimerService.StartPauseAsync(); TimerService.ChangeIcon();}">
+        <i class="@TimerService.IconString"/></button>
+    <button title="Next Round" class="btn btn-outline-danger" @onclick="async () => {await GetNextRound(); }">
         <i class="oi oi-media-step-forward"/></button>
     </div>
 </div>
@@ -36,21 +37,18 @@ else
 }
 @code
 {
-    public string IconString = "oi oi-media-play";
-    private string errorString;
+    private string errorString = string.Empty;
     public bool PlayButtonDisabled = false;
     public bool roundsEntered = false;
-    public void ChangeIcon(){
-        IconString = (TimerService.IsRunning) ? "oi oi-media-pause" : "oi oi-media-play";
-        //PlayButtonDisabled = TimerService.TimerEmpty;
-    }
+
+    private bool ErrorStringEmpty() => !string.IsNullOrEmpty(errorString);
+
     protected override Task OnInitializedAsync()
     {
         roundsEntered = Game.Rounds.Count == 0;
-        TimerService.OnChange += ValueChanged;
+        TimerService.OnChange += async () => await InvokeAsync(StateHasChanged);
         return base.OnInitializedAsync();
     }
-    private bool ErrorStringEmpty() => !string.IsNullOrEmpty(errorString);
 
     private async void ValueChanged()
     {       
@@ -65,8 +63,18 @@ else
         {
             errorString = ex.Message;
         }
-        ChangeIcon();
+        TimerService.ChangeIcon();
         await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task PlaySound()
+    {
+        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");
+    }
+
+    void IDisposable.Dispose()
+    {
+        TimerService.OnChange -= async () => await InvokeAsync(StateHasChanged);
     }
 
     private async Task GetNextRound()
@@ -75,15 +83,10 @@ else
         {
             Game.SetCurrentRound();
             TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);
-            TimerService.IsRunning = false;
+            await TimerService.StopAsync();
             //smallBlind = Game.CurrentRound.SmallBlind.ToString() ?? "x";
             //bigBlind = Game.CurrentRound.BigBlind.ToString() ?? "x";
-            ChangeIcon();
+            TimerService.ChangeIcon();
         }
-    }
-
-    public async Task PlaySound()
-    {
-        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");
     }
 }

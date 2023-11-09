@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using PokerLibrary;
 using PokerLibrary.Models;
+using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 using System;
 using System.Runtime.Intrinsics.Arm;
@@ -10,7 +11,7 @@ namespace PokerTimer6.Data
     public class GameService : IGameService
     {
         public Queue<Round> Rounds { get; set; } = new Queue<Round>();
-        public Round? CurrentRound { get; set; }
+        public Round CurrentRound { get; set; } = new ();
 
         private readonly IPlayerService playerService;
         private readonly IPayoutService payoutService;
