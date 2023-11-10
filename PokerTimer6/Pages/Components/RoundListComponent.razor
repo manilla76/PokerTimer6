@@ -30,14 +30,28 @@ else
 
 }
 <AddRoundComponent/>
-<button class="oi oi-data-transfer-upload" @onclick="Game.SaveRoundLayoutAsync" title="Save Round List" />
-<button class="oi oi-data-transfer-download" @onclick="Game.LoadRoundLayoutAsync" title="Load Round List" />
+<button class="oi oi-data-transfer-upload" @onclick="async () => await Game.SaveRoundLayoutAsync()" title="Update Selected Round List" />
+<button class="oi oi-data-transfer-download" @onclick="async () => await Game.LoadRoundLayoutAsync()" title="Load Round List" />
+<button class="oi oi-cloud-upload" @onclick="async () => await Game.NewRoundLayoutAsync()" title="Save As New Round List"/>
+<div class="col-3">
+    <label for="tournamentID"/>
+    <InputSelect id="tournamentID" class="form-select" @bind-Value="Game.TournamentID">
+        @foreach (var item in Game.TournamentList)
+        {
+            <option value="@item">@item</option>
+        }
+    </InputSelect>
+</div>
+
 
 @code {
-    protected override Task OnInitializedAsync()
+    private List<int> TournamentList = new List<int>{ 1, 2, 3, 4 };
+    private int tournamentID;
+    protected override async Task OnInitializedAsync()
     {
         Game.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
+        await Game.LoadTournamentListAsync();
+        await base.OnInitializedAsync();
     }
 
     void IDisposable.Dispose()

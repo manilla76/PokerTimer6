@@ -1,20 +1,20 @@
 ﻿@inject IGameService Game
 
-<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row p-2">
+<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row pb-1">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <div class="col-3 mr-0">
-        <label>BigBlind</label>
-        <InputNumber id="bigBlind" @bind-Value="roundModel.BigBlind" class="form-control" />
+    <div class="col ps-2">
+        <label for="BigBlind" class="form-label visually-hidden">BigBlind</label>
+        <InputNumber id="BigBlind" @bind-Value="roundModel.BigBlind" class="form-control" placeholder="BigBlind" />
     </div>
-    <div class="col-3 mr-0">
-        <label>Minutes</label>
-        <InputNumber id="minutes" @bind-Value="roundModel.RoundMinutes" class="form-control" />
+    <div class="col p-0">
+        <div class="input-group">
+            <label for="Minutes" class="form-label visually-hidden">Minutes</label>
+            <InputNumber id="Minutes" @bind-Value="roundModel.RoundMinutes" class="form-control" placeholder="Mins" />
+            <button class="btn btn-outline-primary">+</button>
+        </div>
     </div>
-    <div class="col-auto">
-        <button class="btn btn-outline-primary mt-4">Add</button>
-    </div>
-
+    <div class="col-5"/>
 </EditForm>
 
 @code {
