@@ -12,53 +12,69 @@ namespace PokerTimer6.Data
     {
         public Queue<Round> Rounds { get; set; } = new Queue<Round>();
         public Round CurrentRound { get; set; } = new ();
+        public int TournamentID { get; set; } = 1;
+        public List<int> TournamentList { get; set; } = new List<int>();
+        public event Action? OnChange;
+        private void NotifyDataChanged() => OnChange?.Invoke();
 
         private readonly IPlayerService playerService;
         private readonly IPayoutService payoutService;
         private readonly IDataAccess data;
         private int round = 0;
 
-        public event Action? OnChange;
 
-        private void NotifyDataChanged() => OnChange?.Invoke();
         public GameService(IPlayerService playerService, IPayoutService payoutService, IDataAccess data)
         {
             this.playerService = playerService;
             this.payoutService = payoutService;
             this.data = data;
         }
-        public int TournamentID { get; set; } = 1;
-        public List<int> TournamentList { get; set; } = new List<int>();
-
+       
+        /// <summary>
+        /// Gets next round from the queue
+        /// </summary>
         public void SetCurrentRound()
         {
             CurrentRound = Rounds.Dequeue();
             NotifyDataChanged();
         }
-
+        /// <summary>
+        /// Resets the Players and Payouts
+        /// </summary>
         public void ResetTournament()
         {
             playerService.ResetPlayers();
             payoutService.ResetPayout();
             NotifyDataChanged();
         }
+        /// <summary>
+        /// Uses the number of starting players (before the "still playing" box is unchecked) to select the payout structure
+        /// </summary>
         public void SetActivePayout()
         {
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
-
+        /// <summary>
+        /// Assigns all active players to a table/seat combination and assigns a dealer for each table.
+        /// </summary>
         public void ShufflePlayers()
         {
             playerService.ShufflePlayers();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
-
+        /// <summary>
+        /// New player added to active game, assigns seat, adds $ to prize pool, and verifies proper payout structure
+        /// </summary>
         public void AddSeat()
         {
             playerService.SetSeat();
             payoutService.AddPrizeMoney();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
+        /// <summary>
+        /// Adds a round to the queue
+        /// </summary>
+        /// <param name="roundModel">Round to add</param>
         public void AddRound(Round roundModel)
         {
             round++;
@@ -66,17 +82,27 @@ namespace PokerTimer6.Data
             roundModel.BigBlind = null;
             NotifyDataChanged();
         }
-
+        /// <summary>
+        /// Deletes Round from the queue
+        /// </summary>
+        /// <param name="round">Round to delete</param>
         public void RemoveRound(Round round)
         {
             Rounds = new Queue<Round>(Rounds.Where(r => r != round));
             NotifyDataChanged();
         }
+        /// <summary>
+        /// Save list of players to the database
+        /// </summary>
+        /// <returns></returns>
         public async Task SavePlayers()
         {
             await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", playerService.Players);
         }
-
+        /// <summary>
+        /// Loads list of players from the database
+        /// </summary>
+        /// <returns></returns>
         public async Task LoadPlayers()
         {
             var output = await data.LoadData<Player, DynamicParameters>("select name from Players", new DynamicParameters());
@@ -85,7 +111,10 @@ namespace PokerTimer6.Data
                 playerService.AddPlayer(item);
             }
         }
-
+        /// <summary>
+        /// Updates selected tournament_id (from UI) blind structure with the current blind structure.
+        /// </summary>
+        /// <returns></returns>
         public async Task SaveRoundLayoutAsync()
         {
             // get the id#s of this tournament_id from the database
@@ -101,6 +130,10 @@ namespace PokerTimer6.Data
             await data.SaveData<Round>($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentID})", insertList);
             await data.SaveData<Round>($"delete from Rounds where id = @id", deleteIntList);
         }
+        /// <summary>
+        /// Creates a new tournament_id in the Round table with the current blind structure.
+        /// </summary>
+        /// <returns></returns>
         public async Task NewRoundLayoutAsync()
         {
 
@@ -112,7 +145,10 @@ namespace PokerTimer6.Data
             
             await data.SaveData<Round>($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentList.Max()})", Rounds.ToList());
         }
-
+        /// <summary>
+        /// Loads the blind structure of the selected tournament_id (from UI)
+        /// </summary>
+        /// <returns></returns>
         public async Task LoadRoundLayoutAsync()
         {
             Rounds.Clear();
@@ -123,7 +159,10 @@ namespace PokerTimer6.Data
                 AddRound(item);
             }
         }
-
+        /// <summary>
+        /// Gets the list of tournament #s from the database (Round table) with blind structures saved.
+        /// </summary>
+        /// <returns></returns>
         public async Task LoadTournamentListAsync()
         {
             var output = await data.LoadData<int, DynamicParameters>("select distinct Tournament_id from Rounds", new DynamicParameters());

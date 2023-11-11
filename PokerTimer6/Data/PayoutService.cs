@@ -15,12 +15,19 @@ namespace PokerTimer6.Data
 
         private void NotifyDataChanged() => OnChange?.Invoke();
 
+        /// <summary>
+        /// Add current BuyIn (from UI) to the prize pool
+        /// </summary>
         public void AddPrizeMoney()
         {
             PrizeMoney += BuyIn;
             CalculatePayout();
             NotifyDataChanged();
         }
+        /// <summary>
+        /// Look up the payout structure from the configuration (appsettings.json)
+        /// </summary>
+        /// <param name="StartingNumberOfPlayers"># of players</param>
         public void SetActivePayout(uint StartingNumberOfPlayers)
         {
             ActivePayout = Payouts.First(p => p.MinNumberOfPlayers <= StartingNumberOfPlayers & p.MaxNumberOfPlayers >= StartingNumberOfPlayers);
@@ -31,6 +38,9 @@ namespace PokerTimer6.Data
             CalculatePayout();
             NotifyDataChanged();
         }
+        /// <summary>
+        /// Calculate the payout based on the prize pool and payout structure
+        /// </summary>
         public void CalculatePayout()
         {
             ActivePayout.Payouts.Clear();
@@ -38,6 +48,7 @@ namespace PokerTimer6.Data
             {
                 return;
             }
+            // set payout for each level close to the payout percentage and rounded to the nearest 10.
             for (int i = 0; i < ActivePayout.PayoutPercents.Count - 1; i++)
             {
                 var payout = ActivePayout.PayoutPercents[i] * PrizeMoney;
@@ -49,6 +60,9 @@ namespace PokerTimer6.Data
 
         }
 
+        /// <summary>
+        /// Reset Payout
+        /// </summary>
         public void ResetPayout()
         {
             PrizeMoney = 0;

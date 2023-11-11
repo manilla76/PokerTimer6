@@ -31,54 +31,7 @@ namespace SheepheadConsole
                     game.CurrentTrick.GetLegalCardsToPlay(game.PlayerList[game.ActivePlayer].Hand).ForEach(x => Console.WriteLine(x.Abbreviation));
                     ConsoleKeyInfo cki;
                     bool CardPlayed = false;
-
-                    do
-                    {
-                        cki = Console.ReadKey();
-                        switch (cki.Key)
-                        {
-                            case ConsoleKey.D1:
-                                if (game.PlayCard(0))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D2:
-                                if (game.TrickList.Count > 6) break;
-                                if (game.PlayCard(1))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D3:
-                                if (game.TrickList.Count > 5) break;
-                                if (game.PlayCard(2))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D4:
-                                if (game.TrickList.Count > 4) break;
-                                if (game.PlayCard(3))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D5:
-                                if (game.TrickList.Count > 3) break;
-                                if (game.PlayCard(4))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D6:
-                                if (game.TrickList.Count > 2) break;
-                                if (game.PlayCard(5))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D7:
-                                if (game.TrickList.Count > 1) break;
-                                if (game.PlayCard(6))
-                                    CardPlayed = true;
-                                break;
-                            case ConsoleKey.D8:
-                                if (game.TrickList.Count > 0) break;
-                                if (game.PlayCard(7))
-                                    CardPlayed = true;
-                                break;
-                        }
-
-                    } while (!keys.Contains(cki.Key) || CardPlayed == false); // Card Play
+                    cki = CheckForCardPlay(keys, game, ref CardPlayed);
                     CardPlayed = false;
                     Console.Clear();
                 }
@@ -92,6 +45,59 @@ namespace SheepheadConsole
             } while (ContinueGame);
             game.FinishHand();
             // Process score, return to the top
+        }
+
+        private static ConsoleKeyInfo CheckForCardPlay(List<ConsoleKey> keys, Game game, ref bool CardPlayed)
+        {
+            ConsoleKeyInfo cki;
+            do
+            {
+                cki = Console.ReadKey();
+                switch (cki.Key)
+                {
+                    case ConsoleKey.D1:
+                        if (game.PlayCard(0))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D2:
+                        if (game.TrickList.Count > 6) break;
+                        if (game.PlayCard(1))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D3:
+                        if (game.TrickList.Count > 5) break;
+                        if (game.PlayCard(2))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D4:
+                        if (game.TrickList.Count > 4) break;
+                        if (game.PlayCard(3))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D5:
+                        if (game.TrickList.Count > 3) break;
+                        if (game.PlayCard(4))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D6:
+                        if (game.TrickList.Count > 2) break;
+                        if (game.PlayCard(5))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D7:
+                        if (game.TrickList.Count > 1) break;
+                        if (game.PlayCard(6))
+                            CardPlayed = true;
+                        break;
+                    case ConsoleKey.D8:
+                        if (game.TrickList.Count > 0) break;
+                        if (game.PlayCard(7))
+                            CardPlayed = true;
+                        break;
+                }
+
+            } while (!keys.Contains(cki.Key) || CardPlayed == false); // Card Play
+            return cki;
         }
     }
 }

@@ -11,8 +11,9 @@
         event Action OnChange;
 
         void ChangeIcon();
-        void SetTimeRemaining();
-        void SetTimeRemaining(TimeSpan time);
+        void Dispose();
+        Task SetTimeRemaining(TimeSpan time);
+        Task SetTimeRemaining();
         Task StartPauseAsync();
         Task StopAsync();
     }
