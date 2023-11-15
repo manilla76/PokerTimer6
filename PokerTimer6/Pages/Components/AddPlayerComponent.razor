@@ -1,33 +1,10 @@
 ﻿@inject IGameService Game
 @inject IPlayerService Player
 @inject IPayoutService Payout
+@inject PlayerPresenter Presenter
 @implements IDisposable
 
-@* <EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
-    <DataAnnotationsValidator />
-    <ValidationSummary /> *@
-    <div class="input-group autocomplete w-50">
-        <input @bind=selectedPlayerName @oninput=HandleInput @onkeydown="@Enter" class="form-control filter"/>
-        @* <InputText @bind-Value="@playerModel.Name" @oninput=HandleInput class="form-control filter" placeholder="Player Name" /> *@ @* Add Option to autocomplete the player name from db *@
-        @* <button class="btn btn-outline-primary input-group-text">Add</button> *@
-        @if(PlayerNames is not null)
-        {
-            <ul class="options">
-                @if(PlayerNames.Any())
-                {
-                    @foreach(var player in PlayerNames)
-                    {
-                        <li class="option" @onclick=@(_ => SelectPlayer(player.id))>
-                            <span class="option-text">@player.Name</span>
-                        </li>
-                    }
-                }
-            </ul>
-        }
-    </div>
-
-@* </EditForm> *@
-@*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
+<TypeAhead CssClass="form-control mb-3 w-50" FilterItems="Presenter.GetItems" @bind-Value="Presenter.TypeAheadText"/>
 <br />
 <label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px" /></label>
 <br />

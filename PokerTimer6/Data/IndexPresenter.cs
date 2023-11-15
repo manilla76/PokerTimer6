@@ -1,4 +1,6 @@
-﻿namespace PokerTimer6.Data
+﻿using PokerTimer6.Data.Interfaces;
+
+namespace PokerTimer6.Data
 {
     public class IndexPresenter
     {
