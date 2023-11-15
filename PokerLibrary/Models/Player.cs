@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PokerTimer6.Models
+namespace PokerLibrary.Models
 {
     public class Player
     {

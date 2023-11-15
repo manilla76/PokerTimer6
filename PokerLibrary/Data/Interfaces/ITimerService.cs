@@ -1,4 +1,4 @@
-﻿namespace PokerTimer6.Data.Interfaces
+﻿namespace PokerLibrary.Data.Interfaces
 {
     public interface ITimerService
     {

@@ -1,4 +1,4 @@
-﻿namespace PokerTimer6.Models
+﻿namespace PokerLibrary.Models
 {
     public class TimerEventArgs : EventArgs
     {

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using PokerLibrary;
-using PokerTimer6.Data;
-using PokerTimer6.Data.Interfaces;
+using PokerLibrary.Data;
+using PokerLibrary.Data.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +11,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<ITimerService, TimerService>();
 builder.Services.AddTransient<IDataAccess, DataAccess>();
-builder.Services.AddTransient<IPokerData, PokerData>();
 builder.Services.AddSingleton<IPlayerService, PlayerService>();
 builder.Services.AddSingleton<IPayoutService, PayoutService>();
 builder.Services.AddSingleton<IGameService, GameService>();

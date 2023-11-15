@@ -1,12 +1,8 @@
 ﻿using Dapper;
-using PokerLibrary;
 using PokerLibrary.Models;
-using PokerTimer6.Data.Interfaces;
-using PokerTimer6.Models;
-using System;
-using System.Runtime.Intrinsics.Arm;
+using PokerLibrary.Data.Interfaces;
 
-namespace PokerTimer6.Data
+namespace PokerLibrary.Data
 {
     public class GameService : IGameService
     {

@@ -1,7 +1,8 @@
 ﻿namespace PokerLibrary.Models
 {
-    public class TournamentModel
+    public class Tournament
     {
+        public int id { get; set; }
         public string Date { get; set; }
         public string First { get; set; }
         public string Second { get; set; }

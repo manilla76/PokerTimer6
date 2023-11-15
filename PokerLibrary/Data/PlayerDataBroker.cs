@@ -1,7 +1,7 @@
-﻿using PokerTimer6.Data.Interfaces;
-using PokerTimer6.Models;
+﻿using PokerLibrary.Data.Interfaces;
+using PokerLibrary.Models;
 
-namespace PokerTimer6.Data
+namespace PokerLibrary.Data
 {
     public class PlayerDataBroker : IPlayerDataBroker
     {
