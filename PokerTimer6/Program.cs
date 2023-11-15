@@ -15,7 +15,18 @@ builder.Services.AddTransient<IPokerData, PokerData>();
 builder.Services.AddSingleton<IPlayerService, PlayerService>();
 builder.Services.AddSingleton<IPayoutService, PayoutService>();
 builder.Services.AddSingleton<IGameService, GameService>();
-
+builder.Services.AddScoped<ICountryDataBroker, CountryDataBroker>();
+builder.Services.AddScoped<ICountryDataProvider, CountryDataProvider>();
+//builder.Services.AddTransient<CountryPresenter>();
+builder.Services.AddTransient<IndexPresenter>();
+if (!builder.Services.Any(x => x.ServiceType == typeof(HttpClient)))
+{
+    builder.Services.AddScoped<HttpClient>(s =>
+    {
+        var uriHelper = s.GetRequiredService<NavigationManager>();
+        return new HttpClient { BaseAddress = new Uri(uriHelper.BaseUri) };
+    });
+}
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

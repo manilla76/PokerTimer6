@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <None Include="compilerconfig.json" />
+    <None Include="wwwroot\css\Autocomplete.css" />
     <None Include="wwwroot\Sounds\mixkit-bell-notification-933.wav" />
     <None Include="wwwroot\Sounds\mixkit-positive-notification-951.wav" />
     <None Include="wwwroot\Sounds\mixkit-toy-robot-alert-2815.wav" />

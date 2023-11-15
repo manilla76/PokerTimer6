@@ -1,0 +1,11 @@
+﻿@page "/demo"
+@inject IndexPresenter Presenter
+<PageTitle>Type Ahead Demo</PageTitle>
+<TypeAhead FilterItems=this.Presenter.GetItems @bind-Value=this.Presenter.TypeAheadText />
+<div class="alert alert-info">
+    TypeAheadText : @this.Presenter.TypeAheadText
+</div>
+
+@code {
+
+}

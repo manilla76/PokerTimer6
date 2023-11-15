@@ -3,15 +3,30 @@
 @inject IPayoutService Payout
 @implements IDisposable
 
-<EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
+@* <EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
     <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="input-group">
-        <InputText @bind-Value="@playerModel.Name" placeholder="Player Name" />
-        <button class="btn btn-outline-primary input-group-text">Add</button>
+    <ValidationSummary /> *@
+    <div class="input-group autocomplete w-50">
+        <input @bind=selectedPlayerName @oninput=HandleInput @onkeydown="@Enter" class="form-control filter"/>
+        @* <InputText @bind-Value="@playerModel.Name" @oninput=HandleInput class="form-control filter" placeholder="Player Name" /> *@ @* Add Option to autocomplete the player name from db *@
+        @* <button class="btn btn-outline-primary input-group-text">Add</button> *@
+        @if(PlayerNames is not null)
+        {
+            <ul class="options">
+                @if(PlayerNames.Any())
+                {
+                    @foreach(var player in PlayerNames)
+                    {
+                        <li class="option" @onclick=@(_ => SelectPlayer(player.id))>
+                            <span class="option-text">@player.Name</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
     </div>
 
-</EditForm>
+@* </EditForm> *@
 @*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
 <br />
 <label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px" /></label>
@@ -20,27 +35,80 @@
 <button class="oi oi-data-transfer-upload" @onclick="Game.SavePlayers" title="Save Player List"/>
 <button class="oi oi-data-transfer-download" @onclick="Game.LoadPlayers" title="Load Player List" />
 @code {
+    private string? filter = string.Empty;
+    private uint? selectedPlayerID;
+    private string? selectedPlayerName;
+    private List<Player>? PlayerNames = new List<Player>();
+
     [Parameter]
     public Player playerModel { get; set; } = new Player();
 
     public void AddPlayer()
     {
-        if (Player.Players.Exists(p => p.Name == playerModel.Name) | string.IsNullOrEmpty(playerModel.Name))  //if the player already exists or empty...return
+        if (Player.Players.Exists(p => p.Name.ToLower() == selectedPlayerName?.ToLower()) | string.IsNullOrEmpty(selectedPlayerName))  //if the player already exists or empty...return
             return;
-        Player.AddPlayer(new Player(Player.GetNextPlayerId(), playerModel.Name));
+        if (PlayerNames?.Any(p=>p.Name.ToLower() == selectedPlayerName?.ToLower()) == true)
+        {
+            Player.AddPlayer(PlayerNames.First(p => p.Name.ToLower() == selectedPlayerName?.ToLower()));
+        }
+        else if (selectedPlayerName is not null) Player.AddPlayer(new Player(Player.GetNextPlayerId(), selectedPlayerName));
         if (Payout.PrizeMoney > 0)
         {
             Game.AddSeat();
+            selectedPlayerName = null;
+            StateHasChanged();
         }
-        StateHasChanged();
-        playerModel.Name = "";
+
+        // playerModel.Name = "";
+
     }
-    protected override Task OnInitializedAsync()
+
+    private void Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            selectedPlayerName = filter;
+            AddPlayer();
+            PlayerNames = null;
+            selectedPlayerID = null;
+            selectedPlayerName = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        filter = e.Value?.ToString();    
+        if (filter?.Length > 1)
+        {
+            var playerList = await Game.GetPlayerNames();
+            PlayerNames = playerList.Where(p => p.Name.ToLower().Contains(filter.ToLower())).OrderBy(i=>i.Name).ToList();  //filtered list of names
+        }
+        else
+        {
+            PlayerNames = null;
+            selectedPlayerName = null;
+            selectedPlayerID = null;
+        }
+    }
+    private void SelectPlayer(uint id)
+    {
+        selectedPlayerID = id;
+        selectedPlayerName = PlayerNames?.First(p => p.id.Equals(id)).Name;
+        AddPlayer();
+        PlayerNames = null;
+        selectedPlayerName = null;
+        selectedPlayerID = null;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
     {
         Player.OnChange += async () => await InvokeAsync(StateHasChanged);
         Game.OnChange += async () => await InvokeAsync(StateHasChanged);
         Payout.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
+        await Player.SetNextPlayerID(Game);
+        await base.OnInitializedAsync();
     }
     void IDisposable.Dispose()
     {

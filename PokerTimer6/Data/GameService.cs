@@ -105,11 +105,29 @@ namespace PokerTimer6.Data
         /// <returns></returns>
         public async Task LoadPlayers()
         {
-            var output = await data.LoadData<Player, DynamicParameters>("select name from Players", new DynamicParameters());
+            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
             foreach (var item in output)
             {
                 playerService.AddPlayer(item);
             }
+        }
+        /// <summary>
+        /// Get list of id's from the players table, return the max + 1
+        /// </summary>
+        /// <returns></returns>
+        public async Task<uint> GetNextID()
+        {
+            var output = await data.LoadData<int, DynamicParameters>($"select id from players", new DynamicParameters());
+            return (uint)output.Max() + 1;
+        }
+        /// <summary>
+        /// Get the available players from the db
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<Player>> GetPlayerNames()
+        {
+            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+            return output;
         }
         /// <summary>
         /// Updates selected tournament_id (from UI) blind structure with the current blind structure.

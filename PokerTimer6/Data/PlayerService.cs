@@ -26,6 +26,10 @@ namespace PokerTimer6.Data
             NextPlayerId++;
             return NextPlayerId;
         }
+        public async Task SetNextPlayerID(IGameService game)
+        {
+            NextPlayerId = await game.GetNextID();
+        }
         /// <summary>
         /// Add to player list
         /// </summary>

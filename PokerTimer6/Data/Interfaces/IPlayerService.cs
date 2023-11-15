@@ -20,5 +20,6 @@ namespace PokerTimer6.Data.Interfaces
         void ShufflePlayers();
         void ResetPlayers();
         void RemovePlayer(Player player);
+        Task SetNextPlayerID(IGameService game);
     }
 }

@@ -1,0 +1,43 @@
+﻿@using PokerLibrary;
+@implements IHandleEvent
+@implements IHandleAfterRender
+
+<input class="@CssClass" type="search" value="@this.Value" @onchange=this.OnChange list="@listid" @oninput=this.OnSearchUpdated/>
+<datalist id="@listid">
+    @foreach (var item in this.items)
+    {
+        <option>@item</option>
+    }
+</datalist>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter, EditorRequired] public Func<string?, Task<IEnumerable<string>>>? FilterItems { get; set; }
+    [Parameter] public string CssClass { get; set; } = "form-control mb-3";
+
+    private ActionLimiter deBouncer;
+    private string? filterText;
+    private string listid = Guid.NewGuid().ToString();
+    private IEnumerable<string> items = Enumerable.Empty<string>();
+
+    public TypeAhead() => deBouncer = ActionLimiter.Create(GetFilteredItems, 300);
+
+    private async Task GetFilteredItems() 
+    => this.items = FilterItems is null ? Enumerable.Empty<string>() : await FilterItems.Invoke(filterText);
+
+    private async void OnSearchUpdated(ChangeEventArgs e)
+    {
+        this.filterText = e.Value?.ToString() ?? string.Empty;
+        if (await deBouncer.QueueAsync())
+        { StateHasChanged(); }
+    }
+
+    private Task OnChange(ChangeEventArgs e) => this.ValueChanged.InvokeAsync(e.Value?.ToString());
+
+    protected override Task OnInitializedAsync() => GetFilteredItems();
+
+    Task IHandleEvent.HandleEventAsync(Microsoft.AspNetCore.Components.EventCallbackWorkItem callback, object? arg) 
+    => callback.InvokeAsync(arg);
+    Task IHandleAfterRender.OnAfterRenderAsync() => Task.CompletedTask;
+}

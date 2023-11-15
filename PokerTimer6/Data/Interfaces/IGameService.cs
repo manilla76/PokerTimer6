@@ -12,6 +12,8 @@ namespace PokerTimer6.Data.Interfaces
         event Action? OnChange;
         void AddRound(Round roundModel);
         void AddSeat();
+        Task<uint> GetNextID();
+        Task<List<Player>> GetPlayerNames();
         Task LoadPlayers();
         Task LoadRoundLayoutAsync();
         Task LoadTournamentListAsync();
