@@ -95,6 +95,10 @@ namespace PokerLibrary.Data
         {
             await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", playerService.Players);
         }
+        public async Task SavePlayer(Player playerName)
+        {
+            await data.SaveData<Player>($"insert or ignore into Players (Name) values (@name)", playerName);
+        }
         /// <summary>
         /// Loads list of players from the database
         /// </summary>

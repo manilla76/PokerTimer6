@@ -7,7 +7,8 @@ namespace PokerLibrary.Data
     {
         private IPlayerDataBroker playerDataBroker;
         public PlayerPresenter(IPlayerDataBroker playerBroker) => this.playerDataBroker = playerBroker;
-        public string? TypeAheadText;
+        public string? TypeAheadText { get; set; }
+
         public IEnumerable<Player> filteredPlayerList { get; private set; } = Enumerable.Empty<Player>();
         public async Task<IEnumerable<string>> GetItems(string search)
         {

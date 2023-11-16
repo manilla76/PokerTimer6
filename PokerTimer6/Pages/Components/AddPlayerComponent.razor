@@ -3,16 +3,20 @@
 @inject IPayoutService Payout
 @inject PlayerPresenter Presenter
 @implements IDisposable
-
-<TypeAhead CssClass="form-control mb-3 w-50" FilterItems="Presenter.GetItems" @bind-Value="Presenter.TypeAheadText"/>
+<div class="container">
+    <div class="col-6">
+        <label for="PlayerToAdd">Player Name</label>
+        <TypeAhead CssClass="form-control mb-1" FilterItems="Presenter.GetItems" @bind-Value="Presenter.TypeAheadText" KeyDown="Enter"/>
+    </div>
+    <div class="col-6"/>
+</div>
 <br />
 <label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px" /></label>
 <br />
 <button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
-<button class="oi oi-data-transfer-upload" @onclick="Game.SavePlayers" title="Save Player List"/>
+@* <button class="oi oi-data-transfer-upload" @onclick="Game.SavePlayers" title="Save Player List"/> *@
 <button class="oi oi-data-transfer-download" @onclick="Game.LoadPlayers" title="Load Player List" />
 @code {
-    private string? filter = string.Empty;
     private uint? selectedPlayerID;
     private string? selectedPlayerName;
     private List<Player>? PlayerNames = new List<Player>();
@@ -28,7 +32,15 @@
         {
             Player.AddPlayer(PlayerNames.First(p => p.Name.ToLower() == selectedPlayerName?.ToLower()));
         }
-        else if (selectedPlayerName is not null) Player.AddPlayer(new Player(Player.GetNextPlayerId(), selectedPlayerName));
+        else if (selectedPlayerName is not null) 
+        {
+            var playerToAdd = new Player(Player.GetNextPlayerId(), selectedPlayerName);
+            Player.AddPlayer(playerToAdd);
+            Game.SavePlayer(playerToAdd);
+            Presenter.TypeAheadText = null;
+            StateHasChanged();
+        }
+
         if (Payout.PrizeMoney > 0)
         {
             Game.AddSeat();
@@ -44,18 +56,16 @@
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
         {
-            selectedPlayerName = filter;
+            selectedPlayerName = e.Type;
             AddPlayer();
-            PlayerNames = null;
-            selectedPlayerID = null;
-            selectedPlayerName = null;
+            Presenter.TypeAheadText = null;
             StateHasChanged();
         }
     }
 
     private async Task HandleInput(ChangeEventArgs e)
     {
-        filter = e.Value?.ToString();    
+        /* filter = e.Value?.ToString();    
         if (filter?.Length > 1)
         {
             var playerList = await Game.GetPlayerNames();
@@ -66,18 +76,18 @@
             PlayerNames = null;
             selectedPlayerName = null;
             selectedPlayerID = null;
-        }
+        }*/
     }
-    private void SelectPlayer(uint id)
-    {
-        selectedPlayerID = id;
-        selectedPlayerName = PlayerNames?.First(p => p.id.Equals(id)).Name;
-        AddPlayer();
-        PlayerNames = null;
-        selectedPlayerName = null;
-        selectedPlayerID = null;
-        StateHasChanged();
-    }
+    // private void SelectPlayer(uint id)
+    // {
+    //     selectedPlayerID = id;
+    //     selectedPlayerName = PlayerNames?.First(p => p.id.Equals(id)).Name;
+    //     AddPlayer();
+    //     PlayerNames = null;
+    //     selectedPlayerName = null;
+    //     selectedPlayerID = null;
+    //     StateHasChanged();
+    // }
 
     protected override async Task OnInitializedAsync()
     {

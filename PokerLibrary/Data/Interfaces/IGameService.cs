@@ -20,6 +20,7 @@ namespace PokerLibrary.Data.Interfaces
         Task NewRoundLayoutAsync();
         void RemoveRound(Round round);
         void ResetTournament();
+        Task SavePlayer(Player playerName);
         Task SavePlayers();
         Task SaveRoundLayoutAsync();
         void SetActivePayout();
