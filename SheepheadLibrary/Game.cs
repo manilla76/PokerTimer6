@@ -11,29 +11,32 @@ namespace SheepheadLibrary
         public List<Player> PlayerList = new List<Player>();
         public List<Trick> TrickList = new List<Trick>();
         public Trick CurrentTrick = new Trick();
-        private int firstTrickPlayer = -1;
         private int dealer = 0;
         private Deck deck;
+        private readonly Team teams;
         public int ActivePlayer;
         public int LastWinner = -1;
-        public List<int> TeamQueen = new List<int>();
-        public List<int> TeamNoQueen = new List<int>();
-        private bool teamsAreKnown = false;
-        private bool bothQueensPlayed = false;
+        public static int ScoreToGoOut = 12;
 
-        public Game(Deck deck) 
+        public Game(Deck deck, Team teams) 
         {
             PlayerList.Add(new Player(0));  // player 0
             PlayerList.Add(new Player(1));  // player 1
             PlayerList.Add(new Player(2));  // player 2
             PlayerList.Add(new Player(3));  // player 3
             this.deck = deck;
+            this.teams = teams;
         }
-
+        /// <summary>
+        /// shuffle cards
+        /// </summary>
         public void ShuffleCards()
         {
             deck.ShuffleDeck();
         }
+        /// <summary>
+        /// Deal cards to all players
+        /// </summary>
         public void DealCards()
         {
             for (int j = 0; j < 8; j++) //# of cards per player
@@ -46,14 +49,13 @@ namespace SheepheadLibrary
                 }
             }
             ActivePlayer = (dealer + 1) % PlayerList.Count;
-            TeamNoQueen.Clear();
-            TeamQueen.Clear();
-            firstTrickPlayer = -1;
-            teamsAreKnown = false;
-            bothQueensPlayed = false;
         }
-
-        public bool PlayCard(int cardNumber)
+        /// <summary>
+        /// Try to play the card given
+        /// </summary>
+        /// <param name="cardNumber"></param>
+        /// <returns>true if success</returns>
+        public bool TryPlayCard(int cardNumber)
         {
             if (CurrentTrick == null)
                 CurrentTrick = new();
@@ -71,138 +73,70 @@ namespace SheepheadLibrary
         {
             ActivePlayer = (ActivePlayer + 1) % PlayerList.Count;
         }
-
+        /// <summary>
+        /// Process the trick: identify winner, add trick to winning player, 
+        /// set active player to know who leads next trick, 
+        /// if first trick flag set and player eligible, set teams
+        /// reset first trick flag and player flag.
+        /// </summary>
+        /// <returns>trick number</returns>
         public int ProcessTrick()  // return trick number
         {
             int winner = CurrentTrick.IdentifyWinner();
             PlayerList[winner].AddToWinningTricks(TrickList.Count);
-            if (teamsAreKnown == false)
-            {
-                LookForQueenInCurrentTrick(winner);
-            }
             ActivePlayer = winner;
             LastWinner = ActivePlayer;
+            if (teams.NeedsFirstTrick && PlayerList[winner].HasBothQueens == false) // looking for first trick.  Winner eligible
+            {
+                // set teams
+                // reset player flag, reset first trick flag
+                var playerWithQueens = PlayerList.First(p => p.HasBothQueens);
+                teams.SetTeams(PlayerList, PlayerList[winner], playerWithQueens);  // resets firstTrick flag
+                playerWithQueens.HasBothQueens = false;
+            }
             TrickList.Add(CurrentTrick);
             return TrickList.Count;
         }
 
-        private void LookForQueenInCurrentTrick(int winner)
-        {
-            var queenPlayers = CurrentTrick.TrickCards
-                .Where(c => c.SortStrength == 32 || c.SortStrength == 31)
-                .Select(p => p.PlayedByPlayer).ToList();
-            if (queenPlayers.Count == 0)        // No queens check to see if first trick is set
-            {
-                if (firstTrickPlayer == -1)
-                {
-                    firstTrickPlayer = winner;
-                    if (bothQueensPlayed)
-                    {
-                        TeamQueen.Add(winner);
-                        SetNoQueenTeam();
-                    }
-                }
-            }
-            if (queenPlayers.Count() > 1)       // Both queens played in single trick
-            {
-                TeamQueen.Add(queenPlayers[0]);
-                TeamQueen.Add(queenPlayers[1]);
-                SetNoQueenTeam();
-            }
-            if (queenPlayers.Count() > 0)       // At least one queen played, see if this is the first or 2nd queen.  If 2nd, see if both are same person.  If so, see if first trick set
-            {
-                if (TeamQueen.Count == 0)
-                {
-                    TeamQueen.Add(queenPlayers[0]);
-                    return;
-                }
-                if (TeamQueen[0] == queenPlayers[0])
-                {
-                    bothQueensPlayed = true;
-                    if (firstTrickPlayer > -1)
-                    {
-                        TeamQueen.Add(firstTrickPlayer);
-                        SetNoQueenTeam();
-                    }
-                }
-                else
-                {
-                    TeamQueen.Add(winner);
-                    SetNoQueenTeam();
-                }
-            }
-            
-            if (TeamQueen.Count == 2)           // Team Queen complete, set the other team
-            {
-                
-                SetNoQueenTeam();       
-            }    
-
-        }
-
-        private void SetNoQueenTeam()
-        {
-            teamsAreKnown = true;
-            for (int i = 0; i < PlayerList.Count; i++)
-            {
-                if (!TeamQueen.Contains(i))
-                {
-                    TeamNoQueen.Add(i);
-                }
-            }
-        }
-
-        public void FinishHand()
-        {
-            int queensScore = 0, nonQueensScore = 0;
-            foreach (var player in TeamQueen)
-            {
-                foreach (var trick in PlayerList[player].TricksWon)
-                {
-                    foreach(var card in TrickList[trick].TrickCards)
-                    {
-                        queensScore += card.Points;
-                    }
-                }
-            }
-            foreach (var player in TeamNoQueen)
-            {
-                foreach (var trick in PlayerList[player].TricksWon)
-                {
-                    foreach (var card in TrickList[trick].TrickCards)
-                    {
-                        nonQueensScore += card.Points;
-                    }
-                }
-            }
-            if (queensScore == 120)
-            {
-                PointsToAdd(TeamQueen, 4);
-            }
-            if (queensScore > 90)
-            {
-                PointsToAdd(TeamQueen, 2);
-            }
-            if (queensScore > 60)
-            {
-                PointsToAdd(TeamQueen, 1);
-            }
-            if (nonQueensScore >= 90)
-            {
-                PointsToAdd(TeamNoQueen, 3);
-            }
-            if (nonQueensScore >= 60)
-            {
-                PointsToAdd(TeamNoQueen, 2);
-            }
-        }
-
-        private void PointsToAdd(List<int> team, int points)
+        private void PointsToAdd(List<int> team, int points)  // use the points service instead
         {
             foreach (var player in team)
             {
                 PlayerList[player].Score += points;
             }
+        }
+
+        public void FinishHand()
+        {
+            var queensScore = PointService.AddPoints(teams.TeamQueen, TrickList);
+            var nonQueensScore = PointService.AddPoints(teams.TeamQueen, TrickList);
+            var handScore = PointService.CalculateWinner(queensScore, nonQueensScore);
+            if (nonQueensScore >= queensScore)
+            {
+                foreach (var player in teams.TeamNonQueen)
+                {
+                    player.Score += handScore;
+                }
+            }
+            else
+            {
+                foreach (var player in teams.TeamQueen)
+                {
+                    player.Score += handScore;
+                }
+            }
+        }
+
+        public void StartHand()
+        {
+            ShuffleCards();
+            DealCards();
+            teams.SetTeams(PlayerList, dealer);
+        }
+
+        public void PlayRound()
+        {
+            throw new NotImplementedException();
         }
     }
 }

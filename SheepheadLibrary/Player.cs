@@ -6,7 +6,9 @@
         public int Number { get; set; }
         public Hand Hand { get; set; }
         public int Score { get; set; }
-        public List<int> TricksWon { get; set; }
+        public List<int> TricksWon { get; set; } = new List<int>();
+        public bool IsOut { get => Score >= Game.ScoreToGoOut; }
+        public bool HasBothQueens { get; set; } = false;
 
         public Player(int number)
         {
@@ -21,5 +23,6 @@
                 TricksWon = new List<int>();
             TricksWon.Add(trick);
         }
+
     }
 }
