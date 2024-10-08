@@ -55,8 +55,7 @@
         if (Payout.PrizeMoney > 0)
         {
             Game.AddSeat();
-            selectedPlayerName = null;
-            StateHasChanged();
+            ClearInput();
         }
 
         // playerModel.Name = "";
@@ -67,15 +66,32 @@
     {
         if (e.Code == "Enter" || e.Code == "NumpadEnter")
         {
-            selectedPlayerName = filter;
+            if (selectedPlayerName == null ? true : !selectedPlayerName.ToLower().Contains(filter?.ToLower()))
+                selectedPlayerName = filter;
             AddPlayer();
-            PlayerNames = null;
-            selectedPlayerID = null;
-            selectedPlayerName = null;
-            StateHasChanged();
+            ClearInput();
+        }
+        if (e.Code == "ArrowDown" && PlayerNames?.Count > 0)
+        {
+            selectedPlayerName = PlayerNames?.SkipWhile(x => x.Name.ToLower() != selectedPlayerName?.ToLower()).Skip(1).DefaultIfEmpty(PlayerNames[0]).FirstOrDefault()?.Name;
+        }
+        if (e.Code == "ArrowUp" && PlayerNames?.Count > 0)
+        {
+            selectedPlayerName = PlayerNames?.TakeWhile(x => x.Name.ToLower() != selectedPlayerName?.ToLower()).DefaultIfEmpty(PlayerNames[PlayerNames.Count - 1]).LastOrDefault()?.Name;
+        }
+        if (e.Code == "Escape")
+        {
+            ClearInput();
         }
     }
-
+    private void ClearInput()
+    {
+        filter = null;
+        PlayerNames = null;
+        selectedPlayerID = null;
+        selectedPlayerName = null;
+        StateHasChanged();
+    po}
     private async Task HandleInput(ChangeEventArgs e)
     {
         filter = e.Value?.ToString();    
@@ -87,8 +103,8 @@
         else
         {
             PlayerNames = null;
-            selectedPlayerName = null;
             selectedPlayerID = null;
+            selectedPlayerName = null;
         }
     }
     private void SelectPlayer(uint id)

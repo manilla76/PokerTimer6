@@ -1,4 +1,4 @@
-﻿namespace PokerTimer6.Data
+﻿ namespace PokerTimer6.Data
 {
     public sealed class CountryDataProvider : ICountryDataProvider
     {

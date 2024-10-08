@@ -1,4 +1,6 @@
-﻿namespace PokerTimer6.Data
+﻿using PokerTimer6.Models;
+
+namespace PokerTimer6.Data
 {
     public interface ICountryDataBroker
     {
@@ -7,4 +9,5 @@
         ValueTask<IEnumerable<Continent>> GetContinentsAsync();
         ValueTask<IEnumerable<Country>> GetCountriesAsync();
     }
+
 }

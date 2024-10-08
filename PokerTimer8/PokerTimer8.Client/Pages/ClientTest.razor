@@ -1,0 +1,36 @@
+﻿@page "/client"
+@inject ITimerService timerService
+@rendermode InteractiveWebAssembly
+
+<h3>ClientTest</h3>
+
+<button class="btn btn-primary" @onclick="SetupTimer">Setup Timer</button>
+<div>
+    <p>@timerService.DisplayValue</p>
+    @if (timerMessage.Count > 0)
+    {
+        @foreach (var msg in timerMessage)
+        {
+            <p>@msg</p>
+        }
+    }
+</div>
+
+@code {
+    public int ClientInt { get; set; }
+    private List<string> timerMessage = new();
+    private async Task SetupTimer()
+    {
+        await timerService.SetTimeRemaining(new TimeSpan(0, 0, 30));
+    }
+
+    private async Task StartTimer()
+    {
+        await timerService.StartPauseAsync();
+    }
+
+    private void TimerServiceHandler()
+    {
+        timerMessage.Add("Timer Elapsed");
+    }
+}
