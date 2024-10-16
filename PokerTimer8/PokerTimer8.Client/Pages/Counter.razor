@@ -9,11 +9,102 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<h1>MyInput Test</h1>
+<EditForm Model="this.model" OnValidSubmit="ValidSubmit">
+    @* <div class="container m-5 p-4 border border-secondary">
+        <div class="row mb-2">
+            <div class="col-12">
+                <h2>Test Editor</h2>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-4 form-label" for="txtcountry">
+                Country (Any Value)
+            </div>
+            <div class="col-4">
+                <MyInput id="txtcountry" @bind-value="model.Value" class="form-control">
+                </MyInput>
+                
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-6">
+            </div>
+            <div class="col-6 text-right">
+                <button class="btn btn-secondary" @onclick="(e)=>this.CheckButton()">Check</button>
+            </div>
+        </div>
+    </div> *@
+    <div class="row mb-2">
+        <div class="col-4 form-label" for="txtcountry">
+            Country T Index
+        </div>
+        <div class="col-4">
+            <MyDataListSelect TValue="int" @bind-Value="model.TIndex"
+            DataList="Countries.CountryDictionary" class="form-control"
+            placeholder="Select a country">
+            </MyDataListSelect>
+        </div>
+        <div class="col-4">
+            <ValidationMessage For="(()=> model.TIndex)"></ValidationMessage>
+        </div>
+    </div>
+</EditForm>
+@* <div class="container">
+    <div class="row mb-2">
+        <div class="col-4 form-label">
+            Test Value
+        </div>
+        <div class="col-4 form-control">
+            @this.model.Value
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-4 form-label">
+            Test Index
+        </div>
+        <div class="col-4 form-control">
+            @model.index
+        </div>
+    </div>
+</div> *@
+<div class="row mb-2">
+    <div class="col-4 form-label">
+        Country T Index
+    </div>
+    <div class="col-4 form-control">
+        @this.model.TIndex
+    </div>
+</div>
 @code {
     private int currentCount = 0;
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+
+    Model model = new Model();
+
+    private void CheckButton()
+    {
+        var x = true;
+    }
+
+    private void ValidSubmit()
+    {
+        var x = true;
+    }
+
+    class Model
+    {
+        //public string Value { get; set; } = string.Empty;
+        //public int index { get; set; } = 0;
+
+        public string Value { get; set; } = string.Empty;
+        public string StrictValue { get; set; } = string.Empty;
+        public int Index { get; set; } = 0;
+        public int TIndex { get; set; } = 0;
+        public int Opinion { get; set; } = 0;
     }
 }

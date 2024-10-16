@@ -9,6 +9,7 @@ namespace PokerTimer8.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.Services.AddSingleton<ITimerService, TimerService>();
+            //builder.Services.AddScoped<InputDataList>();
             await builder.Build().RunAsync();
         }
     }

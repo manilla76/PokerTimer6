@@ -1,0 +1,27 @@
+﻿@using System.Linq.Expressions
+<input type="text" @bind-value="this.CurrentValue" @attributes="this.AdditionalAttributes" />
+
+@code {
+    [Parameter]
+    public string Value { get; set; }
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    [Parameter]
+    public Expression<Func<string>> ValueExpression { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object> AdditionalAttributes { get; set; }
+
+    protected virtual string CurrentValue
+    {
+        get => Value;
+        set
+        {
+            if (!value.Equals(Value))
+            {
+                Value = value;
+                if (ValueChanged.HasDelegate)
+                    _ = ValueChanged.InvokeAsync(value);
+            }
+        }
+    }
+}

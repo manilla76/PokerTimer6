@@ -13,6 +13,7 @@ namespace PokerTimer6.Data.Interfaces
         void AddRound(Round roundModel);
         void AddSeat();
         Task<uint> GetNextID();
+        Task<SortedDictionary<Player, string>> GetPlayerDictionary();
         Task<List<Player>> GetPlayerNames();
         Task LoadPlayers();
         Task LoadRoundLayoutAsync();

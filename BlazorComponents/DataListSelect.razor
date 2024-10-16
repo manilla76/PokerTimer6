@@ -1,0 +1,123 @@
+﻿@using System.Diagnostics.CodeAnalysis
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components
+@inherits InputBase<TValue>
+@typeparam TValue
+
+<input class="@CssClass" type="text" @bind-value="@CurrentStringValue" @attributes="this.AdditionalAttributes" list="@dataListId" @oninput="UpdateEnteredText" @onkeydown="OnKeyDown"/>
+<datalist id="@dataListId">
+    @foreach (var kv in DataList)
+    {
+        <option value="@kv.Value"/>
+    }
+</datalist>
+
+@code {
+    [Parameter]
+    public SortedDictionary<TValue, string> DataList { get; set; }
+
+    [Parameter]
+    public bool RestrictToList { get; set; }
+
+    private string dataListId { get; set; } = Guid.NewGuid().ToString();
+
+    private bool _valueSetByTab = false;
+    private string _typedText = string.Empty;
+
+
+    private ValidationMessageStore? _parsingValidationMessages;
+    private bool _previousParsingAttemptFailed = false;
+    private string _selectedValue = string.Empty;
+    private TValue _selectedKey = default;
+
+    protected string CurrentStringValue
+    {
+        get
+        {
+            if (DataList is not null && DataList.Any(dictItem => dictItem.Key.Equals(Value)))   // Checks to see if KV pair exists
+                return DataList.First(dictItem => dictItem.Key.Equals(Value)).Value;            //Returns string value from KV pair
+            else if (RestrictToList)
+                return string.Empty;                                                            // Returns empty if RestrictToList set and entered value doesn't exist in list
+            return _typedText;
+        }
+        set
+        {
+            if (_parsingValidationMessages is null)
+                _parsingValidationMessages = new ValidationMessageStore(EditContext);
+            else
+            {
+                _parsingValidationMessages?.Clear(FieldIdentifier);
+                EditContext.NotifyValidationStateChanged();
+            }
+
+
+            TValue val = default;
+            var haveValue = false;
+            var havePreviousValue = DataList is not null && DataList.ContainsValue(value);      // Checks to see if CurrentString is in the dictionary
+
+            if (_valueSetByTab)                             // If Restrict to list is set, tab key will select the first item in the list
+            {
+                if (!string.IsNullOrWhiteSpace(_typedText))  // typedText is not empty
+                {
+                    haveValue = DataList is not null && DataList.Any(dictItem => dictItem.Value.Contains(_typedText, StringComparison.CurrentCultureIgnoreCase));
+                    if (haveValue)
+                    {
+                        var filteredList = DataList.Where(dictItem => dictItem.Value.Contains(_typedText, StringComparison.CurrentCultureIgnoreCase));
+                        val = filteredList.First().Key;   // first string value from dictionary
+                    }
+                }
+            }
+
+            else if (RestrictToList)
+            {
+                haveValue = DataList is not null && DataList.ContainsValue(value);
+                if (haveValue)
+                    val = DataList.First(dictItem => dictItem.Value.Equals(value)).Key;
+            }
+            else if (havePreviousValue)
+            {
+                haveValue = true;
+                val = DataList.First(dictItem => dictItem.Value.Equals(value)).Key;
+            }
+            else
+            {
+                haveValue = true;
+                val = default;                      //  Not sure what this should be.  This occurs when typedText is not in the list and should be passed back to create a new TValue
+                _parsingValidationMessages?.Add(FieldIdentifier, $"Player: {value}");
+                //EditContext.NotifyValidationStateChanged();
+            }
+
+            if (haveValue)
+            {
+                CurrentValue = val;                 // This is where the main component receives the current value.
+
+                if (_previousParsingAttemptFailed)
+                {
+                    EditContext.NotifyValidationStateChanged();
+                    _previousParsingAttemptFailed = false;
+                }
+            }
+            else
+            {
+                if (!havePreviousValue)
+                {
+                    _parsingValidationMessages?.Add(FieldIdentifier, "You must choose a valid selection.");
+                    _previousParsingAttemptFailed = true;
+                    EditContext.NotifyValidationStateChanged();
+                }
+            }
+            _valueSetByTab = false;
+        }
+    }
+
+    private void UpdateEnteredText(ChangeEventArgs e) => _typedText = e.Value.ToString();
+
+    private void OnKeyDown(KeyboardEventArgs e) =>
+        _valueSetByTab = RestrictToList && (!string.IsNullOrEmpty(e.Key)) && e.Key.Equals("Tab") && (!string.IsNullOrWhiteSpace(_typedText));
+    
+
+    protected override bool TryParseValueFromString(string value, [MaybeNullWhen(false)] out TValue result, [NotNullWhen(false)] out string validationErrorMessage)
+    {
+        throw new NotImplementedException();
+    }
+}

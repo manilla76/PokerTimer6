@@ -27,5 +27,12 @@ namespace PokerLibrary
             string sql = @"insert into [Players] (""Name"", ""Table"", ""Seat"") values (@Name, @Table, @Seat);";
             return db.SaveData(sql, player);
         }
+
+        public async Task<SortedDictionary<PlayerModel, string>> GetPlayerDictionary()
+        {
+            var list = await GetPlayers();
+            SortedDictionary<PlayerModel, string> dict = new (list.Distinct().ToDictionary(x => x, x => x.Name));
+            return dict;
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace PokerTimer6.Models
 {
-    public class Player
+    public class Player : IComparable<Player>, IEquatable<Player>
     {
         public uint id { get; set; }
         [Required]
@@ -30,5 +30,23 @@ namespace PokerTimer6.Models
             Player_Seat = seat;
         }
 
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public int CompareTo(Player? other)
+        {
+            if (string.IsNullOrEmpty(Name))
+            {
+                return -1;
+            }
+            return Name.CompareTo(other.Name);
+        }
+
+        public bool Equals(Player? other)
+        {
+            return Name == other.Name;
+        }
     }
 }

@@ -129,6 +129,13 @@ namespace PokerTimer6.Data
             var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
             return output;
         }
+
+        public async Task<SortedDictionary<Player, string>> GetPlayerDictionary()
+        {
+            var list = await GetPlayerNames();
+            SortedDictionary<Player, string> dict = new(list.Distinct().ToDictionary(x => x, x => x.Name));
+            return dict;
+        }
         /// <summary>
         /// Updates selected tournament_id (from UI) blind structure with the current blind structure.
         /// </summary>
