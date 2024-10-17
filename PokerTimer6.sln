@@ -11,10 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadLibrary", "Sheephe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadConsole", "SheepheadConsole\SheepheadConsole.csproj", "{E4E8829C-1966-4CC5-9583-46E55B63A2D2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerTimer8", "PokerTimer8\PokerTimer8\PokerTimer8.csproj", "{B98E3326-88FE-4373-9CCC-81574345B14E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerTimer8.Client", "PokerTimer8\PokerTimer8.Client\PokerTimer8.Client.csproj", "{8EDFDA42-FDA9-4B96-838A-9C84D932EC32}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorComponents", "BlazorComponents\BlazorComponents.csproj", "{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}"
 EndProject
 Global
@@ -39,14 +35,6 @@ Global
 		{E4E8829C-1966-4CC5-9583-46E55B63A2D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4E8829C-1966-4CC5-9583-46E55B63A2D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4E8829C-1966-4CC5-9583-46E55B63A2D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B98E3326-88FE-4373-9CCC-81574345B14E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B98E3326-88FE-4373-9CCC-81574345B14E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B98E3326-88FE-4373-9CCC-81574345B14E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B98E3326-88FE-4373-9CCC-81574345B14E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8EDFDA42-FDA9-4B96-838A-9C84D932EC32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EDFDA42-FDA9-4B96-838A-9C84D932EC32}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EDFDA42-FDA9-4B96-838A-9C84D932EC32}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EDFDA42-FDA9-4B96-838A-9C84D932EC32}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU

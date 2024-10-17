@@ -27,7 +27,7 @@ else
     <div style="text-align:center">
     <button title="Play/Pause" disabled="@PlayButtonDisabled" class="btn btn-outline" @onclick="async () => {await TimerService.StartPauseAsync(); TimerService.ChangeIcon();}">
         <i class="@TimerService.IconString"/></button>
-    <button title="Next Round" class="btn btn-outline-danger" @onclick="async () => {await GetNextRound(); }">
+    <button title="Next Round" class="btn btn-outline-danger" @onclick="async () => {await GetNextRound(); PlayButtonDisabled = false; }">
         <i class="oi oi-media-step-forward"/></button>
     </div>
 </div>
@@ -46,16 +46,19 @@ else
     protected override Task OnInitializedAsync()
     {
         roundsEntered = Game.Rounds.Count == 0;
-        TimerService.OnChange += async () => await InvokeAsync(StateHasChanged);
+        TimerService.OnChange += async () =>  await ValueChanged();
+        //await InvokeAsync(StateHasChanged);
+
         return base.OnInitializedAsync();
     }
 
-    private async void ValueChanged()
+    private async Task ValueChanged()
     {       
         try
         {
             if (TimerService.SoundAlert)
             {
+                PlayButtonDisabled = true;
                 await PlaySound();
             }
         }
@@ -69,7 +72,7 @@ else
 
     public async Task PlaySound()
     {
-        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");
+        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");        
     }
 
     void IDisposable.Dispose()
@@ -79,7 +82,7 @@ else
 
     private async Task GetNextRound()
     {
-        if (Game.Rounds.Count >= 0)
+        if (Game.Rounds.Count > 0)
         {
             Game.SetCurrentRound();
             TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);

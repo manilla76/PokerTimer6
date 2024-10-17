@@ -7,7 +7,7 @@ namespace PokerLibrary
 {
     public class DataAccess : IDataAccess
     {
-        string connectionString;
+        //string connectionString;
         private readonly IConfiguration config;
 
         public string ConnectionStringName { get; set; } = "Default";
