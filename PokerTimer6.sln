@@ -11,7 +11,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadLibrary", "Sheephe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SheepheadConsole", "SheepheadConsole\SheepheadConsole.csproj", "{E4E8829C-1966-4CC5-9583-46E55B63A2D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorComponents", "BlazorComponents\BlazorComponents.csproj", "{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorComponents", "BlazorComponents\BlazorComponents.csproj", "{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerEntities", "PokerEntities\PokerEntities.csproj", "{26CF345F-CEAB-4CAA-9133-D9302DF414B1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerServices", "PokerServices\PokerServices.csproj", "{2871247B-D288-4B61-B3E8-53FDECD8D157}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerTimer8", "PokerTimer8\PokerTimer8\PokerTimer8.csproj", "{E66E09CB-813B-4AFE-95C3-44546B669FE9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerTimer8.Client", "PokerTimer8\PokerTimer8.Client\PokerTimer8.Client.csproj", "{94200E24-E804-4077-B109-D4E99DF94895}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerApi", "PokerApi\PokerApi.csproj", "{826FABA4-2CC2-4EA5-B6BF-4A9B933207C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +49,26 @@ Global
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2650FEC-858F-4D01-B2CE-6096CDF6F1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26CF345F-CEAB-4CAA-9133-D9302DF414B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26CF345F-CEAB-4CAA-9133-D9302DF414B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26CF345F-CEAB-4CAA-9133-D9302DF414B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26CF345F-CEAB-4CAA-9133-D9302DF414B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2871247B-D288-4B61-B3E8-53FDECD8D157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2871247B-D288-4B61-B3E8-53FDECD8D157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2871247B-D288-4B61-B3E8-53FDECD8D157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2871247B-D288-4B61-B3E8-53FDECD8D157}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E66E09CB-813B-4AFE-95C3-44546B669FE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E66E09CB-813B-4AFE-95C3-44546B669FE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E66E09CB-813B-4AFE-95C3-44546B669FE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E66E09CB-813B-4AFE-95C3-44546B669FE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94200E24-E804-4077-B109-D4E99DF94895}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94200E24-E804-4077-B109-D4E99DF94895}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94200E24-E804-4077-B109-D4E99DF94895}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94200E24-E804-4077-B109-D4E99DF94895}.Release|Any CPU.Build.0 = Release|Any CPU
+		{826FABA4-2CC2-4EA5-B6BF-4A9B933207C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{826FABA4-2CC2-4EA5-B6BF-4A9B933207C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{826FABA4-2CC2-4EA5-B6BF-4A9B933207C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{826FABA4-2CC2-4EA5-B6BF-4A9B933207C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

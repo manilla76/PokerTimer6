@@ -1,7 +1,4 @@
-﻿@using System.Diagnostics.CodeAnalysis
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.AspNetCore.Components
-@inherits InputBase<TValue>
+﻿@inherits InputBase<TValue>
 @typeparam TValue
 
 <input class="@CssClass" type="text" @bind-value="@CurrentStringValue" @attributes="this.AdditionalAttributes" list="@dataListId" @oninput="UpdateEnteredText" @onkeydown="OnKeyDown"/>

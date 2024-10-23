@@ -22,7 +22,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var player in Player.Players)
+            @foreach (var player in players)
             {
                 <tr>
                     <PlayerComponent player="player"/>
@@ -36,6 +36,7 @@ else
 
 @code {
     Player playerModel = new();
+    List<Player> players => Player.Players.OrderByDescending(s => s.IsActive).ThenBy(s => s.Name).ToList();
 
     public int GetPlayerCount()
     {

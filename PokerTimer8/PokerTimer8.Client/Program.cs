@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using PokerTimer8.Client.Data;
+using PokerServices;
+using PokerServices.Interfaces;
 
 namespace PokerTimer8.Client
 {
@@ -8,8 +9,7 @@ namespace PokerTimer8.Client
         static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
-            builder.Services.AddSingleton<ITimerService, TimerService>();
-            //builder.Services.AddScoped<InputDataList>();
+
             await builder.Build().RunAsync();
         }
     }

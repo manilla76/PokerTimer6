@@ -7,7 +7,8 @@
     <EditForm EditContext="@editContext">
          <DataAnnotationsValidator />
      @*  <ValidationSummary /> *@
-        <DataListSelect DataList="PlayerDictionary" @bind-Value="PlayerModel" RestrictToList="false" class="form-control" placeholder="Enter name..."></DataListSelect>
+        @* <DataListSelect DataList="PlayerDictionary" @bind-Value="PlayerModel" RestrictToList="false" class="form-control" placeholder="Enter name..."></DataListSelect> *@
+        <DataListString DataList="playerValues" @bind-Value="PlayerNameFromDataList" RestrictToList="false" class="form-control" placeholder="Enter name..."></DataListString>
     </EditForm>
 </div>
 <br />
@@ -23,6 +24,17 @@
     private string? inputPlayerName = string.Empty;
     private List<Player>? PlayerNames = new List<Player>();
     private EditContext editContext = new EditContext(new Player());
+    private string playerNameFromDataList = string.Empty;
+    public string PlayerNameFromDataList { get => playerNameFromDataList;
+        set
+        {
+            if (value is not null)
+            {
+                playerNameFromDataList = value;
+                AddPlayer(value);
+            }
+            editContext = new EditContext(new Player());
+        } }
     private SortedDictionary<Player, string>? PlayerDictionary
     {
         get
@@ -30,13 +42,11 @@
             return Game.GetPlayerDictionary().Result;
         }
     }
-    private string GetValueFromKey(Player player) => PlayerDictionary.GetValueOrDefault(player);
-
-
-
-    private Player playerModel;
+    private string GetValueFromKey(Player player) => PlayerDictionary?.GetValueOrDefault(player) ?? string.Empty;
+    private IEnumerable<string>? playerValues => PlayerDictionary?.Values.Where(p1 => Player.Players.All(p2 => !p1.Equals(p2.Name, StringComparison.CurrentCultureIgnoreCase))) ?? default;
+    private Player? playerModel;
     [Parameter]
-    public Player PlayerModel
+    public Player? PlayerModel
     {
         get { return playerModel; }
         set 
@@ -58,8 +68,6 @@
             editContext = new EditContext(new Player());
         }
     }
-
-
 
     public void AddPlayer()
     {

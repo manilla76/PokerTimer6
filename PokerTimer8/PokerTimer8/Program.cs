@@ -1,6 +1,11 @@
-using PokerTimer8.Client.Data;
+using PokerServices.Interfaces;
+using PokerServices;
 using PokerTimer8.Client.Pages;
 using PokerTimer8.Components;
+
+
+
+
 
 namespace PokerTimer8
 {
@@ -14,13 +19,20 @@ namespace PokerTimer8
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
+
+            
+            builder.Services.AddSingleton<IGameService, GameService>();
+            builder.Services.AddScoped<IPlayerService, PlayerService>();
+            builder.Services.AddScoped<IPlayerRepository, PlayerRepositoryStaticData>();
             builder.Services.AddSingleton<ITimerService, TimerService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseWebAssemblyDebugging();
+
             }
             else
             {
