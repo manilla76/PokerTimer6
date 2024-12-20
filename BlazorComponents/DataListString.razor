@@ -1,12 +1,15 @@
 ﻿@inherits InputBase<string>
 
-<input class="@CssClass" type="text" @bind-value="@CurrentStringValue" 
-list="@dataListId" attributes="AdditionalAttributes"
-@oninput="UpdateEnteredText" @onkeydown="OnKeyDown" />
+<input id="dataListStringInput" class="@CssClass" type="text" @bind-value="@CurrentStringValue"
+       list="@dataListId" attributes="AdditionalAttributes"
+       @oninput="UpdateEnteredText" @onkeydown="OnKeyDown" />
 <datalist id="@dataListId">
-    @foreach (var item in DataList)
+    @if (DataList != null)
     {
-        <option value="@item" />
+        @foreach (var item in DataList)
+        {
+            <option value="@item" />
+        }
     }
 </datalist>
 
@@ -14,23 +17,42 @@ list="@dataListId" attributes="AdditionalAttributes"
     private string dataListId = Guid.NewGuid().ToString();
     private string typedText = string.Empty;
     private bool _valueSetByTab = false;
-    private bool previousParsingAttempFailed = false;
+    private bool previousParsingAttemptFailed = false;
     private ValidationMessageStore? _parsingValidationMessages;
 
     [Parameter, Required] public IEnumerable<string>? DataList { get; set; }       
     [Parameter] public bool RestrictToList { get; set; } = true;
 
-    private void OnKeyDown(KeyboardEventArgs e) =>
-        _valueSetByTab = RestrictToList && (!string.IsNullOrEmpty(e.Key)) && e.Key.Equals("Tab") && (!string.IsNullOrWhiteSpace(typedText));
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Tab" && !string.IsNullOrWhiteSpace(typedText))
+        {
+            _valueSetByTab = true;
+            SetValueFromTypedText();
+        }
+    }
 
-    private void UpdateEnteredText(ChangeEventArgs e) => typedText = e.Value.ToString();
+    private void UpdateEnteredText(ChangeEventArgs e) => typedText = e.Value?.ToString() ?? string.Empty;
+
+    private void SetValueFromTypedText()
+    {
+        if (DataList != null && DataList.Any(item => item.Contains(typedText, StringComparison.CurrentCultureIgnoreCase)))
+        {
+            var filteredList = DataList.Where(item => item.Contains(typedText, StringComparison.CurrentCultureIgnoreCase)).ToList();
+            CurrentStringValue = filteredList.First();
+        }
+        else
+        {
+            CurrentStringValue = typedText;
+        }
+    }
 
     protected string CurrentStringValue 
     { 
         get
         {
-            if (DataList is not null && DataList.Any(item => item == Value))
-                return DataList.First(item => item == Value);
+            if (DataList != null && DataList.Contains(Value))
+                return Value ?? string.Empty;
             else if (RestrictToList)
                 return string.Empty;
             else
@@ -38,33 +60,29 @@ list="@dataListId" attributes="AdditionalAttributes"
         }
         set
         {
-            if (_parsingValidationMessages == null)
-                _parsingValidationMessages = new ValidationMessageStore(EditContext);
-            else
-                _parsingValidationMessages?.Clear(FieldIdentifier);
+            _parsingValidationMessages ??= new ValidationMessageStore(EditContext);
+            _parsingValidationMessages.Clear(FieldIdentifier);
 
             string val = string.Empty;
-            var haveValue = false;
-            var havePreviousValue = DataList is not null && DataList.Contains(value);
+            bool haveValue = false;
 
             if (_valueSetByTab)
             {
-                if (!string.IsNullOrWhiteSpace(typedText))
+                if (!string.IsNullOrWhiteSpace(typedText) && DataList != null)
                 {
-                    haveValue = DataList is not null && DataList.Any(item => item.Contains(typedText, StringComparison.CurrentCultureIgnoreCase));
-                    if (haveValue)
+                    var filteredList = DataList.Where(item => item.Contains(typedText, StringComparison.CurrentCultureIgnoreCase)).ToList();
+                    if (filteredList.Any())
                     {
-                        var filteredList = DataList.Where(item => item.Contains(typedText, StringComparison.CurrentCultureIgnoreCase)).ToList();
                         val = filteredList[0];
+                        haveValue = true;
                     }
                 }
             }
-
-            else if (RestrictToList)
+            else if (RestrictToList && DataList != null)
             {
-                haveValue = DataList is not null && DataList.Contains(value);
+                haveValue = DataList.Contains(value);
                 if (haveValue)
-                    val = DataList.First(item => item == value);
+                    val = value;
             }
             else
             {
@@ -75,24 +93,23 @@ list="@dataListId" attributes="AdditionalAttributes"
             if (haveValue)
             {
                 CurrentValue = val;
-                if (previousParsingAttempFailed)
+                typedText = string.Empty;
+                if (previousParsingAttemptFailed)
                 {
                     EditContext.NotifyValidationStateChanged();
-                    previousParsingAttempFailed = false;
+                    previousParsingAttemptFailed = false;
                 }
             }
             else
             {
-                if (!havePreviousValue)
-                {
-                    _parsingValidationMessages?.Add(FieldIdentifier, "You must choose a valid selection.");
-                    previousParsingAttempFailed = true;
-                    EditContext.NotifyValidationStateChanged();
-                }
+                _parsingValidationMessages.Add(FieldIdentifier, "You must choose a valid selection.");
+                previousParsingAttemptFailed = true;
+                EditContext.NotifyValidationStateChanged();
             }
             _valueSetByTab = false;
         }
     }
-    protected override bool TryParseValueFromString(string value, [MaybeNullWhen(false)] out string result, [NotNullWhen(false)] out string validationErrorMessage)
-    => throw new NotSupportedException($"This component does not parse string inputs.  Bind to the '{nameof(CurrentValue)}' property, not '{nameof(CurrentValueAsString)}'");
+
+    protected override bool TryParseValueFromString(string? value, [MaybeNullWhen(false)] out string result, [NotNullWhen(false)] out string validationErrorMessage)
+        => throw new NotSupportedException($"This component does not parse string inputs. Bind to the '{nameof(CurrentValue)}' property, not '{nameof(CurrentValueAsString)}'");
 }

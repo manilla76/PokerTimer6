@@ -17,6 +17,27 @@
     <Routes @rendermode="InteractiveServer"/>
 
     <script src="_framework/blazor.web.js"></script>
+    
+    <script>
+        function setFocusToDataListString() {
+            setTimeout(() => {
+                const element = document.getElementById('dataListStringInput');
+                if (element) {
+                    element.focus();
+                                    }
+            }, 50); // Delay of 100 milliseconds
+        }
+    </script>
+
+
+
+    <script>
+        function preventDefaultTab(event) {
+            if (event.key === "Tab") {
+                event.preventDefault();
+            }
+        }
+    </script>
 
     <script>
         window.PlaySound = () => {

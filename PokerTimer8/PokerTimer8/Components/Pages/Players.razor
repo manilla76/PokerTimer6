@@ -1,0 +1,29 @@
+﻿@page "/gameServer"
+@attribute [StreamRendering]
+@rendermode InteractiveAuto
+@inject IPlayerService playerService
+
+<h3>Players</h3>
+@if (players is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    foreach (var player in players)
+    {
+        <div>
+            @player.Name
+        </div>
+    }
+}
+
+@code {
+    private List<Player>? players;
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        players = await playerService.GetPlayersAsync();
+        //StateHasChanged();
+    }
+}
