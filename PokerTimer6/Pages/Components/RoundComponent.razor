@@ -1,4 +1,5 @@
 ﻿@inject IGameService Game
+
 <td>
     <button class="btn-close" @onclick="()=>Game.RemoveRound(round)" />
 </td>
@@ -9,12 +10,59 @@
 else
 {
     <td class="text-end">@round.SmallBlind</td>
-    <td class="text-end">@round.BigBlind</td>
+    <td class="text-end" @ondblclick="EditBigBlind">
+        @if (isEditingBigBlind)
+        {
+            <input type="number" @bind="round.BigBlind" @onblur="SaveBigBlind" />
+        }
+        else
+        {
+            @round.BigBlind
+        }
+    </td>
 }
-<td class="text-end">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
+<td class="text-end" @ondblclick="EditRoundTime">
+    @if (isEditingRoundTime)
+    {
+        <input type="number" @bind="round.RoundMinutes" @onblur="SaveRoundTime" />
+    }
+    else
+    {
+        @round.RoundTime.ToString("mm\\:ss")           
+    }
+</td>
 <td />
 
 @code {
     [Parameter]
     public Round round { get; set; } = new Round();
+
+    private bool isEditingBigBlind = false;
+    private bool isEditingRoundTime = false;
+
+    private void EditBigBlind()
+    {
+        isEditingBigBlind = true;
+    }
+
+    private void SaveBigBlind()
+    {
+        isEditingBigBlind = false;
+        // Optionally, you can add code to save the updated value to the server here.
+    }
+
+    private void EditRoundTime()
+    {
+        isEditingRoundTime = true;
+    }
+
+    private void SaveRoundTime()
+    {
+        isEditingRoundTime = false;
+        // Optionally, you can add code to save the updated value to the server here.
+        if (round.RoundMinutes.HasValue)
+        {
+            round.RoundTime = new TimeSpan(0, round.RoundMinutes.Value, 0);
+        }
+    }
 }
