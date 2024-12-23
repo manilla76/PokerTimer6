@@ -5,7 +5,16 @@
 </td>
 @if (@round.SmallBlind == 0)
 {
-    <td class="text-center text-primary" colspan="2">Break</td>
+    <td class="text-center text-primary" colspan="2" @ondblclick="EditBigBlind">
+        @if (isEditingBigBlind)
+        {
+            <input type="number" @bind="round.BigBlind" @onblur="SaveBigBlind" @onkeydown="HandleKeyDownBigBlind" @ref="bigBlindInput" />
+        }
+        else
+        {
+            <span>Break</span>
+        }
+    </td>
 }
 else
 {
@@ -13,7 +22,7 @@ else
     <td class="text-end" @ondblclick="EditBigBlind">
         @if (isEditingBigBlind)
         {
-            <input type="number" @bind="round.BigBlind" @onblur="SaveBigBlind" />
+            <input type="number" @bind="round.BigBlind" @onblur="SaveBigBlind" @onkeydown="HandleKeyDownBigBlind" @ref="bigBlindInput" />
         }
         else
         {
@@ -24,11 +33,18 @@ else
 <td class="text-end" @ondblclick="EditRoundTime">
     @if (isEditingRoundTime)
     {
-        <input type="number" @bind="round.RoundMinutes" @onblur="SaveRoundTime" />
+        <input type="number" @bind="round.RoundMinutes" @onblur="SaveRoundTime" @onkeydown="HandleKeyDownRoundTime" @ref="roundTimeInput" />
     }
     else
     {
-        @round.RoundTime.ToString("mm\\:ss")           
+        @if (round.RoundTime.Hours > 0)
+        {
+            @round.RoundTime.ToString("h\\:mm\\:ss")
+        }
+        else
+        {
+            @round.RoundTime.ToString("mm\\:ss")
+        }
     }
 </td>
 <td />
@@ -40,20 +56,36 @@ else
     private bool isEditingBigBlind = false;
     private bool isEditingRoundTime = false;
 
+    private ElementReference bigBlindInput;
+    private ElementReference roundTimeInput;
+
     private void EditBigBlind()
     {
         isEditingBigBlind = true;
+        StateHasChanged(); // Ensure the UI is updated before focusing
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(1); // Small delay to ensure the input is rendered
+            await bigBlindInput.FocusAsync();
+        });
     }
 
     private void SaveBigBlind()
     {
         isEditingBigBlind = false;
         // Optionally, you can add code to save the updated value to the server here.
+        round.SmallBlind = round.BigBlind / 2;
     }
 
     private void EditRoundTime()
     {
         isEditingRoundTime = true;
+        StateHasChanged(); // Ensure the UI is updated before focusing
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(1); // Small delay to ensure the input is rendered
+            await roundTimeInput.FocusAsync();
+        });
     }
 
     private void SaveRoundTime()
@@ -63,6 +95,22 @@ else
         if (round.RoundMinutes.HasValue)
         {
             round.RoundTime = new TimeSpan(0, round.RoundMinutes.Value, 0);
+        }
+    }
+
+    private void HandleKeyDownBigBlind(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "Tab")
+        {
+            SaveBigBlind();
+        }
+    }
+
+    private void HandleKeyDownRoundTime(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "Tab")
+        {
+            SaveRoundTime();
         }
     }
 }

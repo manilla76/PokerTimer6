@@ -2,7 +2,7 @@
 @implements IDisposable
 
 <h3>Upcoming Rounds</h3>
-@if (Game.Rounds.Count == 0)
+@if (!Game.Rounds.Any())
 {
     <p><em>Add Rounds</em></p>
 }
@@ -12,9 +12,9 @@ else
         <thead>
             <tr>
                 <th width="1%">-</th>
-                <th class="text-center, fw-bold">SB</th>
-                <th class="text-center, fw-bold">BB</th>
-                <th style="text-center, fw-bold">Time</th>
+                <th class="text-center fw-bold">SB</th>
+                <th class="text-center fw-bold">BB</th>
+                <th class="text-center fw-bold">Time</th>
                 <th/>
             </tr>
         </thead>
@@ -27,12 +27,11 @@ else
             }
         </tbody>
     </table>
-
 }
 <AddRoundComponent/>
-<button class="oi oi-data-transfer-upload" @onclick="async () => await Game.SaveRoundLayoutAsync()" title="Update Selected Round List" />
-<button class="oi oi-data-transfer-download" @onclick="async () => await Game.LoadRoundLayoutAsync()" title="Load Round List" />
-<button class="oi oi-cloud-upload" @onclick="async () => await Game.NewRoundLayoutAsync()" title="Save As New Round List"/>
+<button class="oi oi-data-transfer-upload" @onclick="SaveRoundLayoutAsync" title="Update Selected Round List" />
+<button class="oi oi-data-transfer-download" @onclick="LoadRoundLayoutAsync" title="Load Round List" />
+<button class="oi oi-cloud-upload" @onclick="NewRoundLayoutAsync" title="Save As New Round List"/>
 <div class="col-3">
     <label for="tournamentID"/>
     <InputSelect id="tournamentID" class="form-select" @bind-Value="Game.TournamentID">
@@ -43,19 +42,36 @@ else
     </InputSelect>
 </div>
 
-
 @code {
-    private List<int> TournamentList = new List<int>{ 1, 2, 3, 4 };
-    private int tournamentID;
     protected override async Task OnInitializedAsync()
     {
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
+        Game.OnChange += OnGameChange;
         await Game.LoadTournamentListAsync();
         await base.OnInitializedAsync();
     }
 
+    private void OnGameChange()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveRoundLayoutAsync()
+    {
+        await Game.SaveRoundLayoutAsync();
+    }
+
+    private async Task LoadRoundLayoutAsync()
+    {
+        await Game.LoadRoundLayoutAsync();
+    }
+
+    private async Task NewRoundLayoutAsync()
+    {
+        await Game.NewRoundLayoutAsync();
+    }
+
     void IDisposable.Dispose()
     {
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Game.OnChange -= OnGameChange;
     }
 }

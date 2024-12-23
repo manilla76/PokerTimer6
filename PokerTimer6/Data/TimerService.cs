@@ -103,7 +103,7 @@ namespace PokerTimer6.Data
         /// <returns></returns>
         private async Task CalculateDisplayValue()
         {
-            this.DisplayValue = $"{timeRemaining.Minutes}:{timeRemaining.Seconds.ToString("00")}";
+            DisplayValue = timeRemaining.Hours > 0 ? timeRemaining.ToString("h\\:mm\\:ss") : timeRemaining.ToString("mm\\:ss");
             if (timeRemaining.TotalSeconds <= 0)
                 await StopAsync();
         }

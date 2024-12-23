@@ -8,13 +8,36 @@ using System.Runtime.Intrinsics.Arm;
 
 namespace PokerTimer6.Data
 {
+    /// <summary>
+    /// Service for managing game operations such as rounds, players, and payouts.
+    /// </summary>
     public class GameService : IGameService
     {
+        /// <summary>
+        /// Gets or sets the queue of rounds.
+        /// </summary>
         public Queue<Round> Rounds { get; set; } = new Queue<Round>();
-        public Round CurrentRound { get; set; } = new ();
+
+        /// <summary>
+        /// Gets or sets the current round.
+        /// </summary>
+        public Round CurrentRound { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the tournament ID.
+        /// </summary>
         public int TournamentID { get; set; } = 1;
+
+        /// <summary>
+        /// Gets or sets the list of tournament IDs.
+        /// </summary>
         public List<int> TournamentList { get; set; } = new List<int>();
+
+        /// <summary>
+        /// Event triggered when data changes.
+        /// </summary>
         public event Action? OnChange;
+
         private void NotifyDataChanged() => OnChange?.Invoke();
 
         private readonly IPlayerService playerService;
@@ -22,24 +45,38 @@ namespace PokerTimer6.Data
         private readonly IDataAccess data;
         private int round = 0;
 
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GameService"/> class.
+        /// </summary>
+        /// <param name="playerService">The player service.</param>
+        /// <param name="payoutService">The payout service.</param>
+        /// <param name="data">The data access service.</param>
         public GameService(IPlayerService playerService, IPayoutService payoutService, IDataAccess data)
         {
             this.playerService = playerService;
             this.payoutService = payoutService;
             this.data = data;
         }
-       
+
         /// <summary>
-        /// Gets next round from the queue
+        /// Sets the current round from the queue of rounds.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown when no rounds are available.</exception>
         public void SetCurrentRound()
         {
-            CurrentRound = Rounds.Dequeue();
-            NotifyDataChanged();
+            if (Rounds.Count > 0)
+            {
+                CurrentRound = Rounds.Dequeue();
+                NotifyDataChanged();
+            }
+            else
+            {
+                throw new InvalidOperationException("No rounds available to set as current round.");
+            }
         }
+
         /// <summary>
-        /// Resets the Players and Payouts
+        /// Resets the tournament by resetting players and payouts.
         /// </summary>
         public void ResetTournament()
         {
@@ -47,23 +84,26 @@ namespace PokerTimer6.Data
             payoutService.ResetPayout();
             NotifyDataChanged();
         }
+
         /// <summary>
-        /// Uses the number of starting players (before the "still playing" box is unchecked) to select the payout structure
+        /// Sets the active payout based on the starting number of players.
         /// </summary>
         public void SetActivePayout()
         {
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
+
         /// <summary>
-        /// Assigns all active players to a table/seat combination and assigns a dealer for each table.
+        /// Shuffles the players and updates the active payout.
         /// </summary>
         public void ShufflePlayers()
         {
             playerService.ShufflePlayers();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
+
         /// <summary>
-        /// New player added to active game, assigns seat, adds $ to prize pool, and verifies proper payout structure
+        /// Adds a seat for a player and updates the payout.
         /// </summary>
         public void AddSeat()
         {
@@ -71,127 +111,233 @@ namespace PokerTimer6.Data
             payoutService.AddPrizeMoney();
             payoutService.SetActivePayout(playerService.StartingNumberOfPlayers);
         }
+
         /// <summary>
-        /// Adds a round to the queue
+        /// Adds a round to the queue of rounds.
         /// </summary>
-        /// <param name="roundModel">Round to add</param>
+        /// <param name="roundModel">The round model to add.</param>
+        /// <exception cref="ArgumentException">Thrown when the round model has invalid values.</exception>
         public void AddRound(Round roundModel)
         {
-            round++;
-            Rounds.Enqueue(new Round { id = roundModel.id, Tournament_id = roundModel.Tournament_id, RoundNumber = round, SmallBlind = roundModel.BigBlind / 2 ?? 0, BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, (int)roundModel.RoundMinutes, 0) }); ;
-            roundModel.BigBlind = null;
-            NotifyDataChanged();
+            if (roundModel.RoundMinutes.HasValue)
+            {
+                round++;
+                Rounds.Enqueue(new Round
+                {
+                    id = roundModel.id,
+                    Tournament_id = roundModel.Tournament_id,
+                    RoundNumber = round,
+                    SmallBlind = roundModel.BigBlind / 2,
+                    BigBlind = roundModel.BigBlind,
+                    RoundTime = TimeSpan.FromMinutes(roundModel.RoundMinutes.Value)
+                });
+                NotifyDataChanged();
+            }
+            else
+            {
+                throw new ArgumentException("Round model must have valid RoundMinutes values.");
+            }
         }
+
         /// <summary>
-        /// Deletes Round from the queue
+        /// Removes a round from the queue of rounds.
         /// </summary>
-        /// <param name="round">Round to delete</param>
+        /// <param name="round">The round to remove.</param>
         public void RemoveRound(Round round)
         {
             Rounds = new Queue<Round>(Rounds.Where(r => r != round));
             NotifyDataChanged();
         }
+
         /// <summary>
-        /// Save list of players to the database
+        /// Saves the players to the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when saving players fails.</exception>
         public async Task SavePlayers()
         {
-            await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", playerService.Players);
+            try
+            {
+                await data.SaveData("insert or ignore into Players (Name) values (@name)", playerService.Players);
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to save players.", ex);
+            }
         }
+
         /// <summary>
-        /// Loads list of players from the database
+        /// Loads the players from the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when loading players fails.</exception>
         public async Task LoadPlayers()
         {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            foreach (var item in output)
+            try
             {
-                playerService.AddPlayer(item);
+                var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+                foreach (var item in output)
+                {
+                    playerService.AddPlayer(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to load players.", ex);
             }
         }
+
         /// <summary>
-        /// Get list of id's from the players table, return the max + 1
+        /// Gets the next available player ID.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The next available player ID.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when getting the next ID fails.</exception>
         public async Task<uint> GetNextID()
         {
-            var output = await data.LoadData<int, DynamicParameters>($"select id from players", new DynamicParameters());
-            return (uint)output.Max() + 1;
+            try
+            {
+                var output = await data.LoadData<int, DynamicParameters>("select id from players", new DynamicParameters());
+                return (uint)output.Max() + 1;
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to get next ID.", ex);
+            }
         }
+
         /// <summary>
-        /// Get the available players from the db
+        /// Gets the list of player names.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of players.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when getting player names fails.</exception>
         public async Task<List<Player>> GetPlayerNames()
         {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            return output;
+            try
+            {
+                var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+                return output;
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to get player names.", ex);
+            }
         }
 
+        /// <summary>
+        /// Gets a dictionary of players with their names.
+        /// </summary>
+        /// <returns>A sorted dictionary of players and their names.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when getting the player dictionary fails.</exception>
         public async Task<SortedDictionary<Player, string>> GetPlayerDictionary()
         {
-            var list = await GetPlayerNames();
-            SortedDictionary<Player, string> dict = new(list.Distinct().ToDictionary(x => x, x => x.Name));
-            return dict;
+            try
+            {
+                var list = await GetPlayerNames();
+                return new SortedDictionary<Player, string>(list.Distinct().ToDictionary(x => x, x => x.Name));
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to get player dictionary.", ex);
+            }
         }
+
         /// <summary>
-        /// Updates selected tournament_id (from UI) blind structure with the current blind structure.
+        /// Saves the round layout to the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when saving the round layout fails.</exception>
         public async Task SaveRoundLayoutAsync()
         {
-            // get the id#s of this tournament_id from the database
-            // update any matching id's
-            // delete from the db any id's that no longer exist
-            // insert to the db any id's that don't match a current row
+            try
+            {
+                var IdList = await data.LoadData<Round, DynamicParameters>($"select id from Rounds where Tournament_id = {TournamentID}", new DynamicParameters());
+                var updateList = Rounds.Where(r => IdList.Any(i => i.id == r.id)).ToList();
+                var insertList = Rounds.Where(r => !IdList.Select(i => i.id).Contains(r.id)).ToList();
+                var deleteIntList = IdList.Where(i => !Rounds.Select(r => r.id).Contains(i.id)).ToList();
 
-            var IdList = await data.LoadData<Round, DynamicParameters>($"select id from Rounds where Tournament_id = {TournamentID}", new DynamicParameters());
-            var updateList = (from r in Rounds where IdList.Any(i => i.id == r.id) select r).ToList();// Gets the rounds that need to be updated
-            var insertList = Rounds.Where(r => !(IdList.Select(i=> i.id).Contains(r.id))).ToList();  // Gets the rounds to be inserted
-            var deleteIntList = IdList.Where(i => !Rounds.Select(r => r.id).Contains(i.id)).ToList();      // Gets the list of id's to be deleted
-            await data.SaveData<Round>($"update Rounds set BigBlind = @BigBlind, Time = @Time, Tournament_id = {TournamentID} where id = @id", updateList.ToList());
-            await data.SaveData<Round>($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentID})", insertList);
-            await data.SaveData<Round>($"delete from Rounds where id = @id", deleteIntList);
+                await data.SaveData($"update Rounds set BigBlind = @BigBlind, Time = @Time, Tournament_id = {TournamentID} where id = @id", updateList);
+                await data.SaveData($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentID})", insertList);
+                await data.SaveData($"delete from Rounds where id = @id", deleteIntList);
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to save round layout.", ex);
+            }
         }
+
         /// <summary>
-        /// Creates a new tournament_id in the Round table with the current blind structure.
+        /// Creates a new round layout and saves it to the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when creating a new round layout fails.</exception>
         public async Task NewRoundLayoutAsync()
         {
-
-            TournamentList.Add(TournamentList.Max() + 1);
-            foreach (var item in Rounds)
+            try
             {
-                item.Time = (int)item.RoundTime.TotalMinutes;
+                TournamentList.Add(TournamentList.Max() + 1);
+                foreach (var item in Rounds)
+                {
+                    item.Time = (int)item.RoundTime.TotalMinutes;
+                }
+
+                await data.SaveData($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentList.Max()})", Rounds.ToList());
             }
-            
-            await data.SaveData<Round>($"insert into Rounds (BigBlind, Time, Tournament_id) values (@BigBlind, @Time, {TournamentList.Max()})", Rounds.ToList());
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to create new round layout.", ex);
+            }
         }
+
         /// <summary>
-        /// Loads the blind structure of the selected tournament_id (from UI)
+        /// Loads the round layout from the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when loading the round layout fails.</exception>
         public async Task LoadRoundLayoutAsync()
         {
-            Rounds.Clear();
-            var output = await data.LoadData<Round, DynamicParameters>($"select id, BigBlind, Time, Tournament_id from Rounds where Tournament_id = {TournamentID}", new DynamicParameters());
-            foreach(var item in output)
+            try
             {
-                item.RoundMinutes = item.Time;
-                AddRound(item);
+                Rounds.Clear();
+                var output = await data.LoadData<Round, DynamicParameters>($"select id, BigBlind, Time, Tournament_id from Rounds where Tournament_id = {TournamentID}", new DynamicParameters());
+                foreach (var item in output)
+                {
+                    item.RoundMinutes = item.Time;
+                    AddRound(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log exception details
+                Console.WriteLine($"Failed to load round layout: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                throw new InvalidOperationException("Failed to load round layout.", ex);
             }
         }
+
         /// <summary>
-        /// Gets the list of tournament #s from the database (Round table) with blind structures saved.
+        /// Loads the list of tournament IDs from the database.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when loading the tournament list fails.</exception>
         public async Task LoadTournamentListAsync()
         {
-            var output = await data.LoadData<int, DynamicParameters>("select distinct Tournament_id from Rounds", new DynamicParameters());
-            TournamentList = output.ToList();
+            try
+            {
+                var output = await data.LoadData<int, DynamicParameters>("select distinct Tournament_id from Rounds", new DynamicParameters());
+                TournamentList = output.ToList();
+            }
+            catch (Exception ex)
+            {
+                // Log exception
+                throw new InvalidOperationException("Failed to load tournament list.", ex);
+            }
         }
     }
 

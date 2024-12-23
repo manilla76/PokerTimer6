@@ -22,9 +22,9 @@ else
         <p class="display-1 text-danger">@Game.CurrentRound.SmallBlind / @Game.CurrentRound.BigBlind</p>
     }
     </div>
-    <h1 class="timer" style="text-align:center">@TimerService.DisplayValue</h1>
+    <div class="timer text-center" style="font-size: @(TimerService.DisplayValue.Count(c => c == ':') == 2 ? "14vw" : "16vw");">@TimerService.DisplayValue</div>
     <br />
-    <div style="text-align:center">
+    <div class="text-center">
     <button title="Play/Pause" disabled="@PlayButtonDisabled" class="btn btn-outline" @onclick="async () => {await TimerService.StartPauseAsync(); TimerService.ChangeIcon();}">
         <i class="@TimerService.IconString"/></button>
     <button title="Next Round" class="btn btn-outline-danger" @onclick="async () => {await GetNextRound(); PlayButtonDisabled = false; }">
