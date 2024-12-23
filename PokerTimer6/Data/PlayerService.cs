@@ -1,6 +1,9 @@
 ﻿using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 using PokerTimer6.Pages;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace PokerTimer6.Data
 {
@@ -12,13 +15,44 @@ namespace PokerTimer6.Data
         private readonly Random rng = new();
         public List<int> Dealers { get; set; } = new();
         public uint NextPlayerId { get; private set; }
-        public List<Player> Players { get; set; } = new();
+        public ObservableCollection<Player> Players { get; set; } = new();
         public List<Player> ActiveList { get; set; } = new();
         public uint StartingNumberOfPlayers { get; private set; }
 
         public event Action? OnChange;
 
         private void NotifyDataChanged() => OnChange?.Invoke();
+
+        public PlayerService()
+        {
+            Players.CollectionChanged += Players_CollectionChanged;
+        }
+
+        private void Players_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (Player player in e.NewItems)
+                {
+                    player.PropertyChanged += Player_PropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (Player player in e.OldItems)
+                {
+                    player.PropertyChanged -= Player_PropertyChanged;
+                }
+            }
+
+            NotifyDataChanged();
+        }
+
+        private void Player_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            NotifyDataChanged();
+        }
 
         /// <summary>
         /// Gets the next player ID to ensure each player gets a unique ID.
@@ -48,7 +82,6 @@ namespace PokerTimer6.Data
             if (!Players.Contains(player))
             {
                 Players.Add(player);
-                NotifyDataChanged();
             }
         }
 
@@ -60,7 +93,7 @@ namespace PokerTimer6.Data
         {
             if (Players.Remove(player))
             {
-                NotifyDataChanged();
+                player.PropertyChanged -= Player_PropertyChanged;
             }
         }
 
@@ -125,7 +158,7 @@ namespace PokerTimer6.Data
         /// </summary>
         public void SetSeat()
         {
-            var playerToSeat = Players.Find(p => p.Player_Seat.SeatNumber == 0);
+            var playerToSeat = Players.FirstOrDefault(p => p.Player_Seat.SeatNumber == 0);
             if (playerToSeat == null) return;
 
             ActiveList.Add(playerToSeat);

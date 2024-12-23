@@ -70,7 +70,7 @@
     public async void AddPlayer()
     {
         if (string.IsNullOrEmpty(selectedPlayerName)) return;
-        if (Player.Players.Exists(p => p.Name.Equals(selectedPlayerName, StringComparison.CurrentCultureIgnoreCase))) return;
+        if (Player.Players.Any(p => p.Name.Equals(selectedPlayerName, StringComparison.CurrentCultureIgnoreCase))) return;
 
         var existingPlayer = PlayerNames?.FirstOrDefault(p => p.Name.Equals(selectedPlayerName, StringComparison.CurrentCultureIgnoreCase));
         if (existingPlayer != null)

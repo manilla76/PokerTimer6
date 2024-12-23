@@ -1,4 +1,5 @@
 ﻿using PokerTimer6.Models;
+using System.Collections.ObjectModel;
 
 namespace PokerTimer6.Data.Interfaces
 {
@@ -7,8 +8,8 @@ namespace PokerTimer6.Data.Interfaces
         List<Player> ActiveList { get; set; }
         List<int> Dealers { get; set; }
         uint NextPlayerId { get; }
-        List<Player> Players { get; set; }
         uint StartingNumberOfPlayers { get; }
+        ObservableCollection<Player> Players { get; set; }
 
         event Action? OnChange;
 

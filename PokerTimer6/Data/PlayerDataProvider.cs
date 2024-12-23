@@ -1,13 +1,14 @@
 ﻿using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
+using System.Collections.ObjectModel;
 
 namespace PokerTimer6.Data
 {
     public sealed class PlayerDataProvider : IPlayerDataProvider
     {
-        private List<Player> baseDataSet = new List<Player>();
+        private ObservableCollection<Player> baseDataSet = new ();
         public Task LoadTask { get; private set; } = Task.CompletedTask;
-        private List<Player> players = new List<Player>();
+        private ObservableCollection<Player> players = new ();
         private readonly IPlayerService playerService;
 
         public PlayerDataProvider(IPlayerService playerService)
