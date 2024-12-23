@@ -4,17 +4,25 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-xl-6 mb-5"><PlayerListComponent/></div>
-        <div class="col-xl-4"><SeatComponent/></div></div><br/>
+        <div class="col-xl-6 mb-5">
+            <PlayerListComponent/>
+        </div>
+        <div class="col-xl-4">
+            <SeatComponent/>
+        </div>
     </div>
+</div>
+
 @code {
     protected override void OnInitialized()
     {
-        Game.OnChange += StateHasChanged;
+        Game.OnChange += OnGameChange;
     }
+
+    private void OnGameChange() => InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
-        Game.OnChange -= StateHasChanged;
+        Game.OnChange -= OnGameChange;
     }
 }
