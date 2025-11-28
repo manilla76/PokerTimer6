@@ -61,9 +61,9 @@ else
     private Round roundModel = new();
     int round = 0;
     int smallBlind;
-    int bigBlind;
+    int? bigBlind;
     TimeSpan time;
-    int minutes;
+    int? minutes;
 
     protected override Task OnInitializedAsync()
     {
@@ -73,7 +73,7 @@ else
     public void AddRound()
     {
         round++;
-        Game.Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = roundModel.BigBlind/2 ?? 0, BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, roundModel.RoundMinutes,0) });
+         Game.Rounds.Enqueue(new Round { RoundNumber = round, SmallBlind = ((roundModel.BigBlind ?? 0) / 2), BigBlind = roundModel.BigBlind, RoundTime = new TimeSpan(0, roundModel.RoundMinutes ?? 0, 0) });
         roundModel.BigBlind = null;
     }
 
