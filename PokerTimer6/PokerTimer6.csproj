@@ -4,10 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	<StaticServerRendering>true</StaticServerRendering>
-    <RunAOTCompilation>true</RunAOTCompilation>
+    <RunAOTCompilation>false</RunAOTCompilation>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>partial</TrimMode>
+	<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,9 +28,17 @@
     <None Include="wwwroot\Sounds\mixkit-positive-notification-951.wav" />
     <None Include="wwwroot\Sounds\mixkit-toy-robot-alert-2815.wav" />
   </ItemGroup>
-
+	
   <ItemGroup>
-    <PackageReference Include="BuildWebCompiler2022" Version="1.14.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+	
+  <ItemGroup>
+    <PackageReference Include="BuildWebCompiler2022" Version="1.14.15" />
   </ItemGroup>
 
   <ItemGroup>
