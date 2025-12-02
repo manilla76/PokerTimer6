@@ -1,32 +1,51 @@
 ﻿@inject IGameService Game
 
-<EditForm Model="@roundModel" OnValidSubmit="@HandleValidSubmit" class="row pb-1">
+<EditForm Model="@RoundModel"
+          OnValidSubmit="@HandleValidSubmit"
+          FormName="AddRoundForm"
+          class="row pb-1">
+
     <DataAnnotationsValidator />
     <ValidationSummary />
+
     <div class="col ps-2">
-        <label for="BigBlind" class="form-label visually-hidden">BigBlind</label>
-        <InputNumber id="BigBlind" @bind-Value="roundModel.BigBlind" class="form-control" placeholder="BigBlind" />
+        <InputNumber @bind-Value="RoundModel.BigBlind"
+                     class="form-control"
+                     placeholder="Big Blind" />
     </div>
+
     <div class="col p-0">
         <div class="input-group">
-            <label for="Minutes" class="form-label visually-hidden">Minutes</label>
-            <InputNumber id="Minutes" @bind-Value="roundModel.RoundMinutes" class="form-control" placeholder="Mins" />
-            <button class="btn btn-outline-primary">+</button>
+            <InputNumber @bind-Value="RoundModel.RoundMinutes"
+                         class="form-control"
+                         placeholder="Mins" />
+            <button type="submit" class="btn btn-outline-primary">+</button>
         </div>
     </div>
-    <div class="col-5"/>
 </EditForm>
 
 @code {
-    public Round roundModel { get; set; } = new();
-    private int round = 0;
-    void HandleValidSubmit()
+    // ← THIS IS THE ONLY CHANGE THAT MATTERS
+    private Round RoundModel { get; set; } = new();   // private + no auto-reset
+
+    // If Game changes the collection and causes parent re-render, we must not recreate the model
+    protected override void OnInitialized()
     {
-        AddRound();
-    }
-    public void AddRound()
-    {
-        Game.AddRound(roundModel);
+        // You can even move the "new()" here if you prefer
+        // RoundModel = new Round();
     }
 
+    private void HandleValidSubmit()
+    {
+        // At this exact moment, RoundModel HAS the correct values
+        Game.AddRound(RoundModel);
+
+        // Now intentionally clear the form for the next round
+        RoundModel = new Round();
+
+        // If you are on Blazor Server and Game doesn't trigger StateHasChanged,
+        // you may need it here:
+        // StateHasChanged();
+    }
 }
+

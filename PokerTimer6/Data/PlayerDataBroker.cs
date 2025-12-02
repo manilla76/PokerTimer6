@@ -1,4 +1,5 @@
-﻿using PokerTimer6.Models;
+﻿using PokerTimer6.Data.Interfaces;
+using PokerTimer6.Models;
 
 namespace PokerTimer6.Data
 {

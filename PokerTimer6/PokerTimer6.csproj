@@ -4,30 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RunAOTCompilation>false</RunAOTCompilation>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
-	<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+	<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+	<UserSecretsId>057458cc-fc3d-4ab0-a92c-7fff70287bcb</UserSecretsId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="mixkit-alarm-tone-996.wav\**" />
-    <Content Remove="mixkit-alarm-tone-996.wav\**" />
-    <EmbeddedResource Remove="mixkit-alarm-tone-996.wav\**" />
-    <None Remove="mixkit-alarm-tone-996.wav\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="compilerconfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="compilerconfig.json" />
-    <None Include="wwwroot\css\Autocomplete.css" />
-    <None Include="wwwroot\Sounds\mixkit-bell-notification-933.wav" />
-    <None Include="wwwroot\Sounds\mixkit-positive-notification-951.wav" />
-    <None Include="wwwroot\Sounds\mixkit-toy-robot-alert-2815.wav" />
-  </ItemGroup>
 	
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
@@ -35,10 +14,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-	
-  <ItemGroup>
-    <PackageReference Include="BuildWebCompiler2022" Version="1.14.15" />
   </ItemGroup>
 
   <ItemGroup>

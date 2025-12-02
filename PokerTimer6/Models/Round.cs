@@ -10,7 +10,6 @@ namespace PokerTimer6.Models
         public int RoundNumber { get; set; }
         public TimeSpan RoundTime { get; set; }  // probably should be in TimeOffset
 
-        [Required]
         [Range(1, 1000, ErrorMessage = "Value must be in minutes between 1 and 1000.")]
         public int? RoundMinutes { get; set; }
         public int id { get; set; }
