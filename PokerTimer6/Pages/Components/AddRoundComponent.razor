@@ -1,4 +1,6 @@
-﻿@inject IGameService Game
+﻿@using System.ComponentModel.DataAnnotations
+@inject IGameService Game
+@rendermode InteractiveServer
 
 <EditForm Model="@RoundModel"
           OnValidSubmit="@HandleValidSubmit"
@@ -11,7 +13,8 @@
     <div class="col ps-2">
         <InputNumber @bind-Value="RoundModel.BigBlind"
                      class="form-control"
-                     placeholder="Big Blind" />
+                     placeholder="Big Blind" 
+                     autofocus/>
     </div>
 
     <div class="col p-0">
@@ -26,7 +29,7 @@
 
 @code {
     // ← THIS IS THE ONLY CHANGE THAT MATTERS
-    private Round RoundModel { get; set; } = new();   // private + no auto-reset
+    private RoundForm RoundModel { get; set; } = new();   // private + no auto-reset
 
     // If Game changes the collection and causes parent re-render, we must not recreate the model
     protected override void OnInitialized()
@@ -38,14 +41,27 @@
     private void HandleValidSubmit()
     {
         // At this exact moment, RoundModel HAS the correct values
-        Game.AddRound(RoundModel);
+        Game.AddRound(new Round { 
+            RoundMinutes = RoundModel.RoundMinutes,
+            BigBlind = RoundModel.BigBlind
+        });
 
         // Now intentionally clear the form for the next round
-        RoundModel = new Round();
+        RoundModel.BigBlind = null;
 
         // If you are on Blazor Server and Game doesn't trigger StateHasChanged,
         // you may need it here:
         // StateHasChanged();
+    }
+
+    private record RoundForm
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Big Blind must be at least 1")]
+        public int? BigBlind { get; set; }
+        
+        [Required, Range(1, 1000, ErrorMessage = "Minutes must be at least 1")]
+        public int RoundMinutes { get; set; }
+
     }
 }
 

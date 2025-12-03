@@ -1,5 +1,6 @@
 ﻿@inject IGameService Game
 @implements IDisposable
+@rendermode InteractiveServer
 
 <h3>Upcoming Rounds</h3>
 @if (Game.Rounds.Count == 0)
@@ -45,6 +46,7 @@ else
 
 
 @code {
+    
     private List<int> TournamentList = new List<int>{ 1, 2, 3, 4 };
     private int tournamentID;
     protected override async Task OnInitializedAsync()

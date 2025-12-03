@@ -2,25 +2,33 @@
 @inject IPlayerService Player
 @inject IPayoutService Payout
 @implements IDisposable
+@rendermode InteractiveServer
 
 @* <EditForm Model="@playerModel" OnValidSubmit="@AddPlayer">
     <DataAnnotationsValidator />
     <ValidationSummary /> *@
     <div class="input-group autocomplete w-50">
-        <input @bind=selectedPlayerName @oninput=HandleInput @onkeydown="@Enter" class="form-control filter"/>
+        <input @bind=filter 
+            @oninput=HandleInput 
+            @onkeydown="@Enter" 
+           @onkeydown:preventDefault="@preventKeyDefault"
+            @ref="_inputRef"
+            class="form-control filter"
+            placeholder="Enter Player..."/>
         @* <InputText @bind-Value="@playerModel.Name" @oninput=HandleInput class="form-control filter" placeholder="Player Name" /> *@ @* Add Option to autocomplete the player name from db *@
         @* <button class="btn btn-outline-primary input-group-text">Add</button> *@
-        @if(PlayerNames is not null)
+        @if (PlayerNames is not null && PlayerNames.Any())
         {
             <ul class="options">
-                @if(PlayerNames.Any())
+                @for (int i = 0; i < PlayerNames.Count; i++)
                 {
-                    @foreach(var player in PlayerNames)
-                    {
-                        <li class="option" @onclick=@(_ => SelectPlayer(player.id))>
-                            <span class="option-text">@player.Name</span>
-                        </li>
-                    }
+                    var player = PlayerNames[i];
+                    var index = i;
+                    <li class="dropdown-item @(index == highlightedIndex ? "active bg-primary text-white" : "")"
+                        @onclick="() => SelectPlayer(player.id)"
+                        style="cursor:pointer;">
+                        @player.Name
+                    </li>
                 }
             </ul>
         }
@@ -38,67 +46,126 @@
     private string? filter = string.Empty;
     private uint? selectedPlayerID;
     private string? selectedPlayerName;
+    private ElementReference _inputRef;
     private List<Player>? PlayerNames = new List<Player>();
+    // For keyboard navigation
+    private int highlightedIndex = -1;
 
+    // For conditional preventDefault
+    private bool preventKeyDefault = false;
     [Parameter]
     public Player playerModel { get; set; } = new Player();
 
     public void AddPlayer()
     {
-        if (Player.Players.Exists(p => p.Name.ToLower() == selectedPlayerName?.ToLower()) | string.IsNullOrEmpty(selectedPlayerName))  //if the player already exists or empty...return
+        if (string.IsNullOrEmpty(selectedPlayerName) || Player.Players.Exists(p => p.Name.ToLower() == selectedPlayerName?.ToLower()))
             return;
-        if (PlayerNames?.Any(p=>p.Name.ToLower() == selectedPlayerName?.ToLower()) == true)
+
+        if (PlayerNames?.Any(p => p.Name.ToLower() == selectedPlayerName?.ToLower()) == true)
         {
             Player.AddPlayer(PlayerNames.First(p => p.Name.ToLower() == selectedPlayerName?.ToLower()));
         }
-        else if (selectedPlayerName is not null) Player.AddPlayer(new Player(Player.GetNextPlayerId(), selectedPlayerName));
+        else if (selectedPlayerName is not null)
+            Player.AddPlayer(new Player(Player.GetNextPlayerId(), selectedPlayerName));
+
         if (Payout.PrizeMoney > 0)
         {
-            Game.AddSeat();
-            ClearInput();
+            Game.AddSeat();            
         }
-
-        // playerModel.Name = "";
-
+        ClearInput();
+        ResetAfterAdd();
     }
-
-    private void Enter(KeyboardEventArgs e)
+    private void OnBlur(FocusEventArgs e)
     {
-        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        //Delay clearing the input to allow click event to register
+        if (!string.IsNullOrWhiteSpace(filter))
         {
-            if (selectedPlayerName == null ? true : !selectedPlayerName.ToLower().Contains(filter?.ToLower()))
-                selectedPlayerName = filter;
+            selectedPlayerName = filter.Trim();
             AddPlayer();
             ClearInput();
         }
-        if (e.Code == "ArrowDown" && PlayerNames?.Count > 0)
+    }
+    private void Enter(KeyboardEventArgs e)
+    {
+        preventKeyDefault = false;  // ← Always reset at start
+
+        // No list shown → only allow Enter to add typed name
+        if (PlayerNames == null || PlayerNames.Count == 0)
         {
-            selectedPlayerName = PlayerNames?.SkipWhile(x => x.Name.ToLower() != selectedPlayerName?.ToLower()).Skip(1).DefaultIfEmpty(PlayerNames[0]).FirstOrDefault()?.Name;
+            if (e.Key is "Enter" or "NumpadEnter")
+            {
+                preventKeyDefault = true;
+                selectedPlayerName = string.IsNullOrWhiteSpace(filter) ? null : filter.Trim();
+                AddPlayer();
+                ResetAfterAdd();  // ← Critical reset
+            }
+            return;
         }
-        if (e.Code == "ArrowUp" && PlayerNames?.Count > 0)
+
+        // List is visible — handle navigation
+        switch (e.Key)
         {
-            selectedPlayerName = PlayerNames?.TakeWhile(x => x.Name.ToLower() != selectedPlayerName?.ToLower()).DefaultIfEmpty(PlayerNames[PlayerNames.Count - 1]).LastOrDefault()?.Name;
-        }
-        if (e.Code == "Escape")
-        {
-            ClearInput();
+            case "ArrowDown":
+                preventKeyDefault = true;
+                highlightedIndex = (highlightedIndex + 1) % PlayerNames.Count;
+                StateHasChanged();
+                break;
+
+            case "ArrowUp":
+                preventKeyDefault = true;
+                if (highlightedIndex <= 0)
+                    highlightedIndex = -1;
+                else
+                    highlightedIndex--;
+                StateHasChanged();
+                break;
+
+            case "Tab":
+            case "Enter":
+            case "NumpadEnter":
+                preventKeyDefault = true;
+                if (highlightedIndex >= 0 && highlightedIndex < PlayerNames.Count)
+                    selectedPlayerName = PlayerNames[highlightedIndex].Name;
+                else
+                    selectedPlayerName = filter?.Trim();
+
+                AddPlayer();
+                ResetAfterAdd();  // ← Critical reset
+                break;
+
+            case "Escape":
+                preventKeyDefault = true;
+                ClearInput();
+                ResetAfterAdd();  // ← Also reset here
+                break;
         }
     }
     private void ClearInput()
     {
-        filter = null;
+        filter = string.Empty;           // This clears the input box
         PlayerNames = null;
         selectedPlayerID = null;
         selectedPlayerName = null;
         StateHasChanged();
     }
+
+    // Helper method — keeps code clean and ensures reset always happens
+    private void ResetAfterAdd()
+    {
+        preventKeyDefault = false;     // ← This is the fix you asked for
+        highlightedIndex = -1;
+        // ClearInput() already called in AddPlayer() or Escape
+    }
+
     private async Task HandleInput(ChangeEventArgs e)
     {
-        filter = e.Value?.ToString();    
+        filter = e.Value?.ToString();
+        highlightedIndex = -1;  // Reset highlight when typing
+
         if (filter?.Length > 1)
         {
             var playerList = await Game.GetPlayerNames();
-            PlayerNames = playerList.Where(p => p.Name.ToLower().Contains(filter.ToLower())).OrderBy(i=>i.Name).ToList();  //filtered list of names
+            PlayerNames = playerList.Where(p => p.Name.ToLower().Contains(filter.ToLower())).OrderBy(i => i.Name).ToList();
         }
         else
         {
@@ -112,10 +179,7 @@
         selectedPlayerID = id;
         selectedPlayerName = PlayerNames?.First(p => p.id.Equals(id)).Name;
         AddPlayer();
-        PlayerNames = null;
-        selectedPlayerName = null;
-        selectedPlayerID = null;
-        StateHasChanged();
+        ClearInput();
     }
 
     protected override async Task OnInitializedAsync()
