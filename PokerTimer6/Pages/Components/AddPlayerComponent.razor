@@ -162,17 +162,26 @@
         filter = e.Value?.ToString();
         highlightedIndex = -1;  // Reset highlight when typing
 
-        if (filter?.Length > 1)
-        {
-            var playerList = await Game.GetPlayerNames();
-            PlayerNames = playerList.Where(p => p.Name.ToLower().Contains(filter.ToLower())).OrderBy(i => i.Name).ToList();
-        }
-        else
+        if (filter?.Length < 2)
         {
             PlayerNames = null;
-            selectedPlayerID = null;
-            selectedPlayerName = null;
+            return;
         }
+
+        var allPlayers = await Game.GetPlayerNames();  // All players from DB
+
+        // EXCLUDE players already in the current game
+        var currentPlayerNames = Player.Players
+            .Select(p => p.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        PlayerNames = allPlayers
+            .Where(p => p.Name.Contains(filter ?? "", StringComparison.OrdinalIgnoreCase))
+            .Where(p => !currentPlayerNames.Contains(p.Name))  // ← THIS LINE DOES IT
+            .OrderBy(p => p.Name)
+            .ToList();
+
+        StateHasChanged();
     }
     private void SelectPlayer(uint id)
     {
