@@ -1,4 +1,6 @@
-﻿using PokerTimer6.Data.Interfaces;
+﻿using Dapper;
+using PokerLibrary;
+using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 using PokerTimer6.Pages;
 
@@ -14,9 +16,11 @@ namespace PokerTimer6.Data
     /// 
     /// Do not change to Scoped or Transient — that would break real-time synchronization.
     /// </summary>
-    public class PlayerService : IPlayerService, IDisposable
+    public class PlayerService(IDataAccess data) : IPlayerService, IDisposable
     {
         private Random rng = new Random();
+        private readonly IDataAccess data = data;
+
         public List<int> Dealers { get; set; } = new List<int>();
         public uint NextPlayerId { get; private set; }
         public List<Player> Players { get; set; } = new List<Player>();
@@ -31,6 +35,47 @@ namespace PokerTimer6.Data
         }
 
         /// <summary>
+        /// Get list of id's from the players table, return the max + 1
+        /// </summary>
+        /// <returns></returns>
+        public async Task<uint> GetNextID()
+        {
+            var output = await data.LoadData<int, DynamicParameters>($"select id from players", new DynamicParameters());
+            return (uint)output.Max() + 1;
+        }
+
+        /// <summary>
+        /// Get the available players from the db
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<Player>> GetPlayerNames()
+        {
+            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+            return output;
+        }
+
+        /// <summary>
+        /// Save list of players to the database
+        /// </summary>
+        /// <returns></returns>
+        public async Task SavePlayers()
+        {
+            await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", Players);
+        }
+
+        /// <summary>
+        /// Loads list of players from the database
+        /// </summary>
+        /// <returns></returns>
+        public async Task LoadPlayers()
+        {
+            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+            foreach (var item in output)
+            {
+                AddPlayer(item);
+            }
+        }
+        /// <summary>
         /// Get next PlayerId to ensure each player gets a unique id#.  This probably should come from the database eventually
         /// </summary>
         /// <returns>ID</returns>
@@ -41,7 +86,7 @@ namespace PokerTimer6.Data
         }
         public async Task SetNextPlayerID(IGameService game)
         {
-            NextPlayerId = await game.GetNextID();
+            NextPlayerId = await GetNextID();
         }
         /// <summary>
         /// Add to player list

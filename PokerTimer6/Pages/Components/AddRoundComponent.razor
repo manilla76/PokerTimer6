@@ -2,30 +2,39 @@
 @inject IGameService Game
 @rendermode InteractiveServer
 
-<EditForm Model="@RoundModel"
-          OnValidSubmit="@HandleValidSubmit"
-          FormName="AddRoundForm"
-          class="row pb-1">
+<div class="col m-1">
+    <EditForm Model="@RoundModel"
+              OnValidSubmit="@HandleValidSubmit"
+              FormName="AddRoundForm"
+              class="row pb-1">
 
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <div class="col ps-2">
-        <InputNumber @bind-Value="RoundModel.BigBlind"
-                     class="form-control"
-                     placeholder="Big Blind" 
-                     autofocus/>
-    </div>
+        <div class="col ps-2">
+            <!-- single input-group ensures exact matching heights -->
+            <div class="input-group input-group-sm w-auto">
 
-    <div class="col p-0">
-        <div class="input-group">
-            <InputNumber @bind-Value="RoundModel.RoundMinutes"
-                         class="form-control"
-                         placeholder="Mins" />
-            <button type="submit" class="btn btn-outline-primary">+</button>
+                <InputNumber @bind-Value="RoundModel.BigBlind"
+                             class="form-control me-2"
+                             placeholder="Big Blind"
+                             size="7"
+                             style="max-width: 100px;" />
+
+                <InputNumber @bind-Value="RoundModel.RoundMinutes"
+                             class="form-control"
+                             placeholder="Mins"
+                             size="7"
+                             style="max-width: 100px;" />
+
+                <button type="submit" class="btn btn-outline-primary mx-1">+</button>
+
+            </div>
         </div>
-    </div>
-</EditForm>
+
+    </EditForm>
+</div>
+
 
 @code {
     // ← THIS IS THE ONLY CHANGE THAT MATTERS
@@ -53,7 +62,7 @@
         public int? BigBlind { get; set; }
         
         [Required, Range(1, 1000, ErrorMessage = "Minutes must be at least 1")]
-        public int RoundMinutes { get; set; }
+        public int? RoundMinutes { get; set; }
 
     }
 }

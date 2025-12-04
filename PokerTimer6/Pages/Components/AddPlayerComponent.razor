@@ -1,6 +1,6 @@
-﻿@inject IGameService Game
-@inject IPlayerService Player
+﻿@inject IPlayerService Player
 @inject IPayoutService Payout
+@inject IGameService Game
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -37,11 +37,7 @@
 @* </EditForm> *@
 @*<input @bind="playerName" @onkeypress="@KeyEnterPressed" @bind:event="oninput"/><button @onclick="@AddPlayer">Add Player</button>*@
 <br />
-<label>Buy-In $<input class="m-lg-1" @bind="@PayoutService.BuyIn" style="width:70px" /></label>
-<br />
-<button class="oi oi-reload" @onclick="@Game.ResetTournament" title="Reset Tournament"/>
-<button class="oi oi-data-transfer-upload" @onclick="Game.SavePlayers" title="Save Player List"/>
-<button class="oi oi-data-transfer-download" @onclick="Game.LoadPlayers" title="Load Player List" />
+
 @code {
     private string? filter = string.Empty;
     private uint? selectedPlayerID;
@@ -168,7 +164,7 @@
             return;
         }
 
-        var allPlayers = await Game.GetPlayerNames();  // All players from DB
+        var allPlayers = await Player.GetPlayerNames();  // All players from DB
 
         // EXCLUDE players already in the current game
         var currentPlayerNames = Player.Players
@@ -194,19 +190,14 @@
     protected override void OnInitialized()
     {
         Player.OnChange += HandleChange;
-        Game.OnChange += HandleChange;
-        Payout.OnChange += HandleChange;
     }
     protected override async Task OnInitializedAsync()
     {
         await Player.SetNextPlayerID(Game);
-        await base.OnInitializedAsync();
     }
     private Task HandleChange() => InvokeAsync(StateHasChanged);
     void IDisposable.Dispose()
     {
         Player.OnChange -= HandleChange;
-        Game.OnChange -= HandleChange;
-        Payout.OnChange -= HandleChange;
     }
 }

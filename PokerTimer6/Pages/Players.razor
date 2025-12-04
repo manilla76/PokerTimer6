@@ -1,21 +1,16 @@
-﻿@inject IGameService Game
+﻿@inject IPlayerService Player
 @page "/players"
-@implements IDisposable
 @rendermode InteractiveServer
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-xl-6 mb-5"><PlayerListComponent/></div>
+        <div class="col-xl-6 mb-5">
+            <PlayerListComponent/>
+            <button class="oi oi-data-transfer-upload" @onclick="Player.SavePlayers" title="Save Player List" />
+            <button class="oi oi-data-transfer-download" @onclick="Player.LoadPlayers" title="Load Player List" />
+        </div>
         <div class="col-xl-4"><SeatComponent/></div></div><br/>
     </div>
 @code {
-    protected override void OnInitialized()
-    {
-        Game.OnChange += HandleChange;
-    }
-    private Task HandleChange() => InvokeAsync(StateHasChanged);
-    public void Dispose()
-    {
-        Game.OnChange -= HandleChange;
-    }
+    
 }

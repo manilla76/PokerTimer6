@@ -12,15 +12,11 @@ namespace PokerTimer6.Data.Interfaces
         event Func<Task>? OnChange;
         void AddRound(Round roundModel);
         void AddSeat();
-        Task<uint> GetNextID();
-        Task<List<Player>> GetPlayerNames();
-        Task LoadPlayers();
         Task LoadRoundLayoutAsync();
         Task LoadTournamentListAsync();
         Task NewRoundLayoutAsync();
         void RemoveRound(Round round);
         void ResetTournament();
-        Task SavePlayers();
         Task SaveRoundLayoutAsync();
         void SetActivePayout();
         void SetCurrentRound();

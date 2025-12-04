@@ -17,7 +17,7 @@ namespace PokerTimer6.Data
     public class PayoutService : IPayoutService
     {
         public uint PrizeMoney { get; private set; }
-        public static uint BuyIn { get; set; } = 50;
+        public uint BuyIn { get; set; } = 50;
         
         private readonly AppSettings settings;
         private readonly IReadOnlyList<PayoutBracket> brackets;

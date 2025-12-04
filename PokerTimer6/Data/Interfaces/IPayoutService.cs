@@ -6,7 +6,7 @@ namespace PokerTimer6.Data.Interfaces
     {
         PayoutBracket ActivePayout { get; }
         uint PrizeMoney { get; }
-
+        uint BuyIn { get; set; }
         event Func<Task>? OnChange;
 
         void AddPrizeMoney();

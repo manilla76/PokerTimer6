@@ -21,5 +21,9 @@ namespace PokerTimer6.Data.Interfaces
         void ResetPlayers();
         void RemovePlayer(Player player);
         Task SetNextPlayerID(IGameService game);
+        Task SavePlayers();
+        Task LoadPlayers();
+        Task<List<Player>> GetPlayerNames();
+        Task<uint> GetNextID();
     }
 }

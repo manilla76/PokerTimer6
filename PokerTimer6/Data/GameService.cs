@@ -105,44 +105,7 @@ namespace PokerTimer6.Data
             Rounds = new Queue<Round>(Rounds.Where(r => r != round));
             NotifyDataChanged();
         }
-        /// <summary>
-        /// Save list of players to the database
-        /// </summary>
-        /// <returns></returns>
-        public async Task SavePlayers()
-        {
-            await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", playerService.Players);
-        }
-        /// <summary>
-        /// Loads list of players from the database
-        /// </summary>
-        /// <returns></returns>
-        public async Task LoadPlayers()
-        {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            foreach (var item in output)
-            {
-                playerService.AddPlayer(item);
-            }
-        }
-        /// <summary>
-        /// Get list of id's from the players table, return the max + 1
-        /// </summary>
-        /// <returns></returns>
-        public async Task<uint> GetNextID()
-        {
-            var output = await data.LoadData<int, DynamicParameters>($"select id from players", new DynamicParameters());
-            return (uint)output.Max() + 1;
-        }
-        /// <summary>
-        /// Get the available players from the db
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<Player>> GetPlayerNames()
-        {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            return output;
-        }
+                              
         /// <summary>
         /// Updates selected tournament_id (from UI) blind structure with the current blind structure.
         /// </summary>
@@ -153,8 +116,9 @@ namespace PokerTimer6.Data
             // update any matching id's
             // delete from the db any id's that no longer exist
             // insert to the db any id's that don't match a current row
-
-            var IdList = await data.LoadData<Round, DynamicParameters>($"select id from Rounds where Tournament_id = {TournamentID}", new DynamicParameters());
+            var param = new DynamicParameters();
+            param.Add("@TournamentID", TournamentID);
+            var IdList = await data.LoadData<Round, DynamicParameters>($"select id from Rounds where Tournament_id = @TournamentID", new DynamicParameters() );
             var updateList = (from r in Rounds where IdList.Any(i => i.id == r.id) select r).ToList();// Gets the rounds that need to be updated
             var insertList = Rounds.Where(r => !(IdList.Select(i=> i.id).Contains(r.id))).ToList();  // Gets the rounds to be inserted
             var deleteIntList = IdList.Where(i => !Rounds.Select(r => r.id).Contains(i.id)).ToList();      // Gets the list of id's to be deleted

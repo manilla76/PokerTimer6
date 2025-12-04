@@ -55,7 +55,7 @@ TotalChips = @TotalChips
 
 @code {
     int StartingStack = 15000;
-    public int TotalChips { get { return (int)(Payout.PrizeMoney / PayoutService.BuyIn) * StartingStack; } }
+    public int TotalChips { get { return (int)(Payout.PrizeMoney / Payout.BuyIn) * StartingStack; } }
 
     protected override void OnInitialized()
     {

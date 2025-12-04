@@ -41,7 +41,7 @@ else
     {
         return Player.Players.Count(p => p.IsActive);
     }
-
+    
     protected override void OnInitialized()
     {
         Player.OnChange += HandleChange;
@@ -51,4 +51,5 @@ else
     {
         Player.OnChange -= HandleChange;
     }
+    
 }
