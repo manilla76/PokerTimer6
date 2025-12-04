@@ -191,18 +191,22 @@
         ClearInput();
     }
 
+    protected override void OnInitialized()
+    {
+        Player.OnChange += HandleChange;
+        Game.OnChange += HandleChange;
+        Payout.OnChange += HandleChange;
+    }
     protected override async Task OnInitializedAsync()
     {
-        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
-        Payout.OnChange += async () => await InvokeAsync(StateHasChanged);
         await Player.SetNextPlayerID(Game);
         await base.OnInitializedAsync();
     }
+    private Task HandleChange() => InvokeAsync(StateHasChanged);
     void IDisposable.Dispose()
     {
-        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
-        Payout.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange -= HandleChange;
+        Game.OnChange -= HandleChange;
+        Payout.OnChange -= HandleChange;
     }
 }

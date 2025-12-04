@@ -4,7 +4,17 @@ using PokerTimer6.Pages;
 
 namespace PokerTimer6.Data
 {
-    public class PlayerService : IPlayerService
+    /// <summary>
+    /// Shared tournament state – intentionally registered as Singleton.
+    /// 
+    /// This service holds the single source of truth for the entire poker tournament.
+    /// All connected clients (director screen, phones, tablets, projector) must see 
+    /// exactly the same data in real time. Using Singleton is not only acceptable here —
+    /// it is the correct and intended lifetime for a multi-user tournament director tool.
+    /// 
+    /// Do not change to Scoped or Transient — that would break real-time synchronization.
+    /// </summary>
+    public class PlayerService : IPlayerService, IDisposable
     {
         private Random rng = new Random();
         public List<int> Dealers { get; set; } = new List<int>();
@@ -13,9 +23,12 @@ namespace PokerTimer6.Data
         public List<Player> ActiveList { get; set; } = new List<Player>();
         public uint StartingNumberOfPlayers { get; private set; }
 
-        public event Action? OnChange;
-
-        private void NotifyDataChanged() => OnChange?.Invoke();
+        public event Func<Task>? OnChange;
+        protected async void NotifyDataChanged()
+        {
+            if (OnChange is not null) await Task.WhenAll
+            (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+        }
 
         /// <summary>
         /// Get next PlayerId to ensure each player gets a unique id#.  This probably should come from the database eventually
@@ -180,5 +193,9 @@ namespace PokerTimer6.Data
             NotifyDataChanged();
         }
 
+        public void Dispose()
+        {
+            
+        }
     }
 }

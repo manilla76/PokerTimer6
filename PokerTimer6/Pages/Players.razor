@@ -11,11 +11,11 @@
 @code {
     protected override void OnInitialized()
     {
-        Game.OnChange += StateHasChanged;
+        Game.OnChange += HandleChange;
     }
-
+    private Task HandleChange() => InvokeAsync(StateHasChanged);
     public void Dispose()
     {
-        Game.OnChange -= StateHasChanged;
+        Game.OnChange -= HandleChange;
     }
 }

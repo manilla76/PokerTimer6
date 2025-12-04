@@ -42,13 +42,13 @@ else
         return Player.Players.Count(p => p.IsActive);
     }
 
-    protected override Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        Player.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
+        Player.OnChange += HandleChange;
     }
+    private Task HandleChange() => InvokeAsync(StateHasChanged);
     void IDisposable.Dispose()
     {
-        Player.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Player.OnChange -= HandleChange;
     }
 }

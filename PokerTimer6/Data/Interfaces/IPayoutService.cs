@@ -4,12 +4,10 @@ namespace PokerTimer6.Data.Interfaces
 {
     public interface IPayoutService
     {
-        Payout ActivePayout { get; }
-        List<Payout> Payouts { get; set; }
+        PayoutBracket ActivePayout { get; }
         uint PrizeMoney { get; }
-        int RoundPayoutsToNearest { get; set; }
 
-        event Action? OnChange;
+        event Func<Task>? OnChange;
 
         void AddPrizeMoney();
         void CalculatePayout();

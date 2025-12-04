@@ -47,11 +47,10 @@ else
 
     private bool ErrorStringEmpty() => !string.IsNullOrEmpty(errorString);
 
-    protected override Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         roundsEntered = Game.Rounds.Count == 0;
-        TimerService.OnChange += async () => await InvokeAsync(StateHasChanged);
-        return base.OnInitializedAsync();
+        TimerService.OnChange += HandleChange;
     }
 
     private async void ValueChanged()
@@ -73,12 +72,12 @@ else
 
     public async Task PlaySound()
     {
-        await _jsRuntime.InvokeAsync<string>("PlaySound", "alert");
+        await _jsRuntime.InvokeVoidAsync("pokerSounds.playLevelEnd");
     }
-
+    private Task HandleChange() => InvokeAsync(StateHasChanged);
     void IDisposable.Dispose()
     {
-        TimerService.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        TimerService.OnChange -= HandleChange;
     }
 
     private async Task GetNextRound()

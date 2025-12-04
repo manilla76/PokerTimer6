@@ -31,13 +31,6 @@
     // ← THIS IS THE ONLY CHANGE THAT MATTERS
     private RoundForm RoundModel { get; set; } = new();   // private + no auto-reset
 
-    // If Game changes the collection and causes parent re-render, we must not recreate the model
-    protected override void OnInitialized()
-    {
-        // You can even move the "new()" here if you prefer
-        // RoundModel = new Round();
-    }
-
     private void HandleValidSubmit()
     {
         // At this exact moment, RoundModel HAS the correct values

@@ -46,18 +46,22 @@ else
 
 
 @code {
-    
+
     private List<int> TournamentList = new List<int>{ 1, 2, 3, 4 };
     private int tournamentID;
+    protected override void OnInitialized()
+    {
+        Game.OnChange += HandleChange;    
+    }
     protected override async Task OnInitializedAsync()
     {
-        Game.OnChange += async () => await InvokeAsync(StateHasChanged);
         await Game.LoadTournamentListAsync();
         await base.OnInitializedAsync();
     }
+    private Task HandleChange() => InvokeAsync(StateHasChanged);
 
     void IDisposable.Dispose()
     {
-        Game.OnChange -= async () => await InvokeAsync(StateHasChanged);
+        Game.OnChange -= HandleChange;
     }
 }

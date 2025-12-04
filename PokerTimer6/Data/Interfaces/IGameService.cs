@@ -9,7 +9,7 @@ namespace PokerTimer6.Data.Interfaces
         int TournamentID { get; set; }
         List<int> TournamentList { get; set; }
 
-        event Action? OnChange;
+        event Func<Task>? OnChange;
         void AddRound(Round roundModel);
         void AddSeat();
         Task<uint> GetNextID();

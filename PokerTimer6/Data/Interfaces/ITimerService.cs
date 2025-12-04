@@ -8,7 +8,7 @@
         bool SoundAlert { get; }
         bool TimerEmpty { get; }
 
-        event Action OnChange;
+        event Func<Task>? OnChange;
 
         void ChangeIcon();
         void Dispose();

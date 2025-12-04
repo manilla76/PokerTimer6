@@ -4,10 +4,24 @@ using PokerTimer6.Models;
 
 namespace PokerTimer6.Data
 {
+    /// <summary>
+    /// Shared tournament state – intentionally registered as Singleton.
+    /// 
+    /// This service holds the single source of truth for the entire poker tournament.
+    /// All connected clients (director screen, phones, tablets, projector) must see 
+    /// exactly the same data in real time. Using Singleton is not only acceptable here —
+    /// it is the correct and intended lifetime for a multi-user tournament director tool.
+    /// 
+    /// Do not change to Scoped or Transient — that would break real-time synchronization.
+    /// </summary>
     public class TimerService : ITimerService, IDisposable
     {
-        public event Action? OnChange;
-        private void NotifyDataChanged() => OnChange?.Invoke();
+        public event Func<Task>? OnChange;
+        protected async void NotifyDataChanged()
+        {
+            if (OnChange is not null) await Task.WhenAll
+            (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+        }
 
         private static event EventHandler<TimerEventArgs>? OnTimerChanged;
         private static TimeSpan timeRemaining { get; set; }
@@ -52,6 +66,7 @@ namespace PokerTimer6.Data
 
             return Task.CompletedTask;
         }
+
         /// <summary>
         /// Stop the timer
         /// </summary>

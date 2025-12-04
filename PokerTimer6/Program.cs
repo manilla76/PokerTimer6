@@ -3,6 +3,7 @@ using PokerLibrary;
 using PokerTimer6;
 using PokerTimer6.Data;
 using PokerTimer6.Data.Interfaces;
+using PokerTimer6.Models;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
@@ -11,11 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 
 builder.Services.AddSingleton<ITimerService, TimerService>();
 builder.Services.AddTransient<IDataAccess, DataAccess>();

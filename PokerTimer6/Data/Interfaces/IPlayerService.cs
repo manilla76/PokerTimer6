@@ -10,7 +10,7 @@ namespace PokerTimer6.Data.Interfaces
         List<Player> Players { get; set; }
         uint StartingNumberOfPlayers { get; }
 
-        event Action? OnChange;
+        event Func<Task>? OnChange;
 
         void AddPlayer(Player player);
         uint GetNextPlayerId();

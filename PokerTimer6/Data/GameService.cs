@@ -4,25 +4,39 @@ using PokerLibrary.Models;
 using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 using System;
+using System.Data.SqlClient;
 using System.Runtime.Intrinsics.Arm;
 
 namespace PokerTimer6.Data
 {
+    /// <summary>
+    /// Shared tournament state – intentionally registered as Singleton.
+    /// 
+    /// This service holds the single source of truth for the entire poker tournament.
+    /// All connected clients (director screen, phones, tablets, projector) must see 
+    /// exactly the same data in real time. Using Singleton is not only acceptable here —
+    /// it is the correct and intended lifetime for a multi-user tournament director tool.
+    /// 
+    /// Do not change to Scoped or Transient — that would break real-time synchronization.
+    /// </summary>
     public class GameService : IGameService
     {
         public Queue<Round> Rounds { get; set; } = new Queue<Round>();
         public Round CurrentRound { get; set; } = new ();
         public int TournamentID { get; set; } = 1;
         public List<int> TournamentList { get; set; } = new List<int>();
-        public event Action? OnChange;
-        private void NotifyDataChanged() => OnChange?.Invoke();
-
+        public event Func<Task>? OnChange;
+        protected async void NotifyDataChanged()
+        {
+            if (OnChange is not null) await Task.WhenAll
+            (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+        }
         private readonly IPlayerService playerService;
         private readonly IPayoutService payoutService;
         private readonly IDataAccess data;
         private int round = 0;
 
-
+        
         public GameService(IPlayerService playerService, IPayoutService payoutService, IDataAccess data)
         {
             this.playerService = playerService;

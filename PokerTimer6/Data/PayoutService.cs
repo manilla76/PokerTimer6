@@ -1,19 +1,40 @@
-﻿using PokerTimer6.Data.Interfaces;
+﻿using Microsoft.Extensions.Options;
+using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 
 namespace PokerTimer6.Data
 {
+    /// <summary>
+    /// Shared tournament state – intentionally registered as Singleton.
+    /// 
+    /// This service holds the single source of truth for the entire poker tournament.
+    /// All connected clients (director screen, phones, tablets, projector) must see 
+    /// exactly the same data in real time. Using Singleton is not only acceptable here —
+    /// it is the correct and intended lifetime for a multi-user tournament director tool.
+    /// 
+    /// Do not change to Scoped or Transient — that would break real-time synchronization.
+    /// </summary>
     public class PayoutService : IPayoutService
     {
         public uint PrizeMoney { get; private set; }
         public static uint BuyIn { get; set; } = 50;
-        public List<Payout> Payouts { get; set; } = new();
-        public Payout ActivePayout { get; private set; } = new();
-        public int RoundPayoutsToNearest { get; set; }
+        
+        private readonly AppSettings settings;
+        private readonly IReadOnlyList<PayoutBracket> brackets;
 
-        public event Action? OnChange;
+        public PayoutService(IOptions<AppSettings> options)
+        {
+            settings = options.Value;
+            brackets = settings.Payouts;
+        }
+        public PayoutBracket ActivePayout { get; private set; }
 
-        private void NotifyDataChanged() => OnChange?.Invoke();
+        public event Func<Task>? OnChange;
+        protected async void NotifyDataChanged()
+        {
+            if (OnChange is not null) await Task.WhenAll
+            (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+        }
 
         /// <summary>
         /// Add current BuyIn (from UI) to the prize pool
@@ -30,7 +51,7 @@ namespace PokerTimer6.Data
         /// <param name="StartingNumberOfPlayers"># of players</param>
         public void SetActivePayout(uint StartingNumberOfPlayers)
         {
-            ActivePayout = Payouts.First(p => p.MinNumberOfPlayers <= StartingNumberOfPlayers & p.MaxNumberOfPlayers >= StartingNumberOfPlayers);
+            ActivePayout = brackets.First(p => p.MinNumberOfPlayers <= StartingNumberOfPlayers & p.MaxNumberOfPlayers >= StartingNumberOfPlayers);
             if (PrizeMoney == 0)
             {
                 PrizeMoney = StartingNumberOfPlayers * BuyIn;   // If this is the first time, initialize prizemoney.
@@ -52,7 +73,7 @@ namespace PokerTimer6.Data
             for (int i = 0; i < ActivePayout.PayoutPercents.Count - 1; i++)
             {
                 var payout = ActivePayout.PayoutPercents[i] * PrizeMoney;
-                int roundedpayout = (int)(RoundPayoutsToNearest * Math.Round(payout / (float)RoundPayoutsToNearest));
+                int roundedpayout = (int)(settings.RoundPayoutsToNearest * Math.Round(payout / (decimal)settings.RoundPayoutsToNearest));
                 ActivePayout.Payouts.Add(roundedpayout);
             }
 
@@ -66,7 +87,7 @@ namespace PokerTimer6.Data
         public void ResetPayout()
         {
             PrizeMoney = 0;
-            ActivePayout = new Payout();
+            ActivePayout.Payouts.Clear();
             NotifyDataChanged();
         }
     }
