@@ -3,7 +3,7 @@
 @inject IJSRuntime _jsRuntime
 @implements IDisposable
 
-<audio id="alert" src="../Sounds/mixkit-bell-notification-933.wav"/>
+<audio id="levelEndAlert" src="../Sounds/mixkit-bell-notification-933.wav" preload="auto"/>
 
 <div class="container-fluid">
     <div class="text-center">
@@ -53,28 +53,20 @@ else
         TimerService.OnChange += HandleChange;
     }
 
-    private async void ValueChanged()
-    {       
-        try
-        {
-            if (TimerService.SoundAlert)
-            {
-                await PlaySound();
-            }
-        }
-        catch (Exception ex)
-        {
-            errorString = ex.Message;
-        }
-        TimerService.ChangeIcon();
-        await InvokeAsync(StateHasChanged);
-    }
-
     public async Task PlaySound()
     {
         await _jsRuntime.InvokeVoidAsync("pokerSounds.playLevelEnd");
     }
-    private Task HandleChange() => InvokeAsync(StateHasChanged);
+    private Task HandleChange()
+    {
+        if (TimerService.SoundAlert && !PlayButtonDisabled)
+        {
+            PlayButtonDisabled = true;
+            PlaySound(); 
+        }
+        return InvokeAsync(StateHasChanged);
+    } 
+
     void IDisposable.Dispose()
     {
         TimerService.OnChange -= HandleChange;
@@ -85,11 +77,10 @@ else
         if (Game.Rounds.Count >= 0)
         {
             Game.SetCurrentRound();
-            TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);
+            await TimerService.SetTimeRemaining(Game.CurrentRound.RoundTime);
             await TimerService.StopAsync();
-            //smallBlind = Game.CurrentRound.SmallBlind.ToString() ?? "x";
-            //bigBlind = Game.CurrentRound.BigBlind.ToString() ?? "x";
             TimerService.ChangeIcon();
+            PlayButtonDisabled = false;
         }
     }
 }

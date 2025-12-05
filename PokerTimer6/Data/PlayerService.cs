@@ -4,243 +4,242 @@ using PokerTimer6.Data.Interfaces;
 using PokerTimer6.Models;
 using PokerTimer6.Pages;
 
-namespace PokerTimer6.Data
+namespace PokerTimer6.Data;
+
+/// <summary>
+/// Shared tournament state – intentionally registered as Singleton.
+/// 
+/// This service holds the single source of truth for the entire poker tournament.
+/// All connected clients (director screen, phones, tablets, projector) must see 
+/// exactly the same data in real time. Using Singleton is not only acceptable here —
+/// it is the correct and intended lifetime for a multi-user tournament director tool.
+/// 
+/// Do not change to Scoped or Transient — that would break real-time synchronization.
+/// </summary>
+public class PlayerService(IDataAccess data) : IPlayerService, IDisposable
 {
-    /// <summary>
-    /// Shared tournament state – intentionally registered as Singleton.
-    /// 
-    /// This service holds the single source of truth for the entire poker tournament.
-    /// All connected clients (director screen, phones, tablets, projector) must see 
-    /// exactly the same data in real time. Using Singleton is not only acceptable here —
-    /// it is the correct and intended lifetime for a multi-user tournament director tool.
-    /// 
-    /// Do not change to Scoped or Transient — that would break real-time synchronization.
-    /// </summary>
-    public class PlayerService(IDataAccess data) : IPlayerService, IDisposable
+    private Random rng = new Random();
+    private readonly IDataAccess data = data;
+
+    public List<int> Dealers { get; set; } = new List<int>();
+    public uint NextPlayerId { get; private set; }
+    public List<Player> Players { get; set; } = new List<Player>();
+    public List<Player> ActiveList { get; set; } = new List<Player>();
+    public uint StartingNumberOfPlayers { get; private set; }
+
+    public event Func<Task>? OnChange;
+    protected async void NotifyDataChanged()
     {
-        private Random rng = new Random();
-        private readonly IDataAccess data = data;
+        if (OnChange is not null) await Task.WhenAll
+        (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+    }
 
-        public List<int> Dealers { get; set; } = new List<int>();
-        public uint NextPlayerId { get; private set; }
-        public List<Player> Players { get; set; } = new List<Player>();
-        public List<Player> ActiveList { get; set; } = new List<Player>();
-        public uint StartingNumberOfPlayers { get; private set; }
+    /// <summary>
+    /// Get list of id's from the players table, return the max + 1
+    /// </summary>
+    /// <returns></returns>
+    public async Task<uint> GetNextID()
+    {
+        var output = await data.LoadData<int, DynamicParameters>($"select COALESCE(max(id),0) as id from players", new DynamicParameters());
+        return (uint)output.Max() + 1;
+    }
 
-        public event Func<Task>? OnChange;
-        protected async void NotifyDataChanged()
+    /// <summary>
+    /// Get the available players from the db
+    /// </summary>
+    /// <returns></returns>
+    public async Task<List<Player>> GetPlayerNames()
+    {
+        var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+        return output;
+    }
+
+    /// <summary>
+    /// Save list of players to the database
+    /// </summary>
+    /// <returns></returns>
+    public async Task SavePlayers()
+    {
+        await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", Players);
+    }
+
+    /// <summary>
+    /// Loads list of players from the database
+    /// </summary>
+    /// <returns></returns>
+    public async Task LoadPlayers()
+    {
+        var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
+        foreach (var item in output)
         {
-            if (OnChange is not null) await Task.WhenAll
-            (OnChange.GetInvocationList().Cast<Func<Task>>().Select(x => x()));
+            AddPlayer(item);
         }
+    }
+    /// <summary>
+    /// Get next PlayerId to ensure each player gets a unique id#.  This probably should come from the database eventually
+    /// </summary>
+    /// <returns>ID</returns>
+    public uint GetNextPlayerId()
+    {
+        NextPlayerId++;
+        return NextPlayerId;
+    }
+    public async Task SetNextPlayerID(IGameService game)
+    {
+        NextPlayerId = await GetNextID();
+    }
+    /// <summary>
+    /// Add to player list
+    /// </summary>
+    /// <param name="player">Player</param>
+    public void AddPlayer(Player player)
+    {
+        Players.Add(player);  // probably should check for duplicates
+        NotifyDataChanged();  // when something important changes notify UI of updates
 
-        /// <summary>
-        /// Get list of id's from the players table, return the max + 1
-        /// </summary>
-        /// <returns></returns>
-        public async Task<uint> GetNextID()
+        //string sql = @"Insert into Players (Name, Table, Seat) Values(@Name, @Table, @Seat)";
+        //DataAccess.Add(sql, DataAccess.GetConstructionString());
+    }
+    /// <summary>
+    /// Remove Player from Players
+    /// </summary>
+    /// <param name="player">Player</param>
+    public void RemovePlayer(Player player)
+    {
+        Players.Remove(player);
+        NotifyDataChanged();
+    }
+    /// <summary>
+    /// Shuffle players and assign to random table/seat.  Assign first dealer for each table
+    /// </summary>
+    public void ShufflePlayers()
+    {
+        // determine the number of players starting the tournament
+        if (ActiveList.Count == 0)
         {
-            var output = await data.LoadData<int, DynamicParameters>($"select id from players", new DynamicParameters());
-            return (uint)output.Max() + 1;
+            StartingNumberOfPlayers = (uint)Players.Count(p => p.IsActive);
         }
-
-        /// <summary>
-        /// Get the available players from the db
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<Player>> GetPlayerNames()
+        // get all players still playing
+        ActiveList = Players.Where(p => p.IsActive).ToList();
+        if (ActiveList.Count == 0) return;
+        // shuffle all active players
+        Shuffle<Player>(ActiveList);
+        // assign seats and return number of active tables
+        uint tableCount = AsignSeats();
+        // reset dealers for each table
+        Dealers.Clear();
+        for (int i = 1; i <= tableCount; i++)
         {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            return output;
+            SetDealer(i);
         }
+        //StateHasChanged();
+        NotifyDataChanged();
 
-        /// <summary>
-        /// Save list of players to the database
-        /// </summary>
-        /// <returns></returns>
-        public async Task SavePlayers()
+    }
+    /// <summary>
+    /// Asign players to table/seat combo
+    /// </summary>
+    /// <returns>number of active tables</returns>
+    private uint AsignSeats()
+    {
+        // get number of tables needed
+        uint tableCount = (uint)(ActiveList.Count - 1) / 10 + 1;
+        // assign each player to a table/seat combo.  Balance # of players at each table
+        if (tableCount > 0 & ActiveList.Count > 0)
         {
-            await data.SaveData<Player>("insert or ignore into Players (Name) values (@name)", Players);
-        }
-
-        /// <summary>
-        /// Loads list of players from the database
-        /// </summary>
-        /// <returns></returns>
-        public async Task LoadPlayers()
-        {
-            var output = await data.LoadData<Player, DynamicParameters>("select name, id from Players", new DynamicParameters());
-            foreach (var item in output)
+            for (int i = 0; i < ActiveList.Count; i++)
             {
-                AddPlayer(item);
+                ActiveList[i].Player_Seat.TableNumber = (uint)i % tableCount + 1;
+                ActiveList[i].Player_Seat.SeatNumber = (uint)i / tableCount + 1;
             }
         }
-        /// <summary>
-        /// Get next PlayerId to ensure each player gets a unique id#.  This probably should come from the database eventually
-        /// </summary>
-        /// <returns>ID</returns>
-        public uint GetNextPlayerId()
-        {
-            NextPlayerId++;
-            return NextPlayerId;
-        }
-        public async Task SetNextPlayerID(IGameService game)
-        {
-            NextPlayerId = await GetNextID();
-        }
-        /// <summary>
-        /// Add to player list
-        /// </summary>
-        /// <param name="player">Player</param>
-        public void AddPlayer(Player player)
-        {
-            Players.Add(player);  // probably should check for duplicates
-            NotifyDataChanged();  // when something important changes notify UI of updates
 
-            //string sql = @"Insert into Players (Name, Table, Seat) Values(@Name, @Table, @Seat)";
-            //DataAccess.Add(sql, DataAccess.GetConstructionString());
-        }
-        /// <summary>
-        /// Remove Player from Players
-        /// </summary>
-        /// <param name="player">Player</param>
-        public void RemovePlayer(Player player)
+        return tableCount;
+    }
+    /// <summary>
+    /// For each table, choose a random first dealer
+    /// </summary>
+    /// <param name="table">Table #</param>
+    public void SetDealer(int table)
+    {
+        if (Dealers.Count >= table)
         {
-            Players.Remove(player);
-            NotifyDataChanged();
+            Dealers[table - 1] = rng.Next(1, ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1); // update table dealer
         }
-        /// <summary>
-        /// Shuffle players and assign to random table/seat.  Assign first dealer for each table
-        /// </summary>
-        public void ShufflePlayers()
+        else
         {
-            // determine the number of players starting the tournament
-            if (ActiveList.Count == 0)
-            {
-                StartingNumberOfPlayers = (uint)Players.Count(p => p.IsActive);
-            }
-            // get all players still playing
-            ActiveList = Players.Where(p => p.IsActive).ToList();
-            if (ActiveList.Count == 0) return;
-            // shuffle all active players
-            Shuffle<Player>(ActiveList);
-            // assign seats and return number of active tables
-            uint tableCount = AsignSeats();
-            // reset dealers for each table
-            Dealers.Clear();
-            for (int i = 1; i <= tableCount; i++)
-            {
-                SetDealer(i);
-            }
-            //StateHasChanged();
-            NotifyDataChanged();
+            Dealers.Add(rng.Next(1, ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1));  // Set dealer per table 
+        }
+        NotifyDataChanged();
+    }
+    /// <summary>
+    /// For players added after game is started, add player to the game.  Balance the number of players on each table.
+    /// If a new table is needed, add a table and reshuffle players.  
+    /// </summary>
+    public void SetSeat()
+    {
+        // get player without a seat
+        var playerToSeat = Players.Find(p => p.Player_Seat.SeatNumber == 0);
+        if (playerToSeat == null)
+            return;
+        //add to active list
+        ActiveList.Add(playerToSeat);
 
-        }
-        /// <summary>
-        /// Asign players to table/seat combo
-        /// </summary>
-        /// <returns>number of active tables</returns>
-        private uint AsignSeats()
+        if (ActiveList.Count % 10 == 1)  // If a new table is needed, shuffle all players
         {
-            // get number of tables needed
-            uint tableCount = (uint)(ActiveList.Count - 1) / 10 + 1;
-            // assign each player to a table/seat combo.  Balance # of players at each table
-            if (tableCount > 0 & ActiveList.Count > 0)
-            {
-                for (int i = 0; i < ActiveList.Count; i++)
-                {
-                    ActiveList[i].Player_Seat.TableNumber = (uint)i % tableCount + 1;
-                    ActiveList[i].Player_Seat.SeatNumber = (uint)i / tableCount + 1;
-                }
-            }
-
-            return tableCount;
+            ShufflePlayers();
         }
-        /// <summary>
-        /// For each table, choose a random first dealer
-        /// </summary>
-        /// <param name="table">Table #</param>
-        public void SetDealer(int table)
+        else
         {
-            if (Dealers.Count >= table)
-            {
-                Dealers[table - 1] = rng.Next(1, ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1); // update table dealer
-            }
-            else
-            {
-                Dealers.Add(rng.Next(1, ActiveList.Count(p => p.Player_Seat.TableNumber == table) + 1));  // Set dealer per table 
-            }
-            NotifyDataChanged();
-        }
-        /// <summary>
-        /// For players added after game is started, add player to the game.  Balance the number of players on each table.
-        /// If a new table is needed, add a table and reshuffle players.  
-        /// </summary>
-        public void SetSeat()
-        {
-            // get player without a seat
-            var playerToSeat = Players.Find(p => p.Player_Seat.SeatNumber == 0);
-            if (playerToSeat == null)
-                return;
-            //add to active list
-            ActiveList.Add(playerToSeat);
+            // find the next open seat keeping all tables balanced
+            // get # of tables
+            // If this person fills the last table, fill it.  Otherwise, add to another table.
 
-            if (ActiveList.Count % 10 == 1)  // If a new table is needed, shuffle all players
+            int numberOfTables = (int)Math.Ceiling((double)ActiveList.Count / 10);  // get number of tables
+            if (ActiveList.Count % numberOfTables == 0)         // new player fills the last table
             {
-                ShufflePlayers();
+                playerToSeat.Player_Seat.TableNumber = (uint)numberOfTables;
+
             }
-            else
+            else   //  find the first opening and fill it.
             {
-                // find the next open seat keeping all tables balanced
-                // get # of tables
-                // If this person fills the last table, fill it.  Otherwise, add to another table.
-
-                int numberOfTables = (int)Math.Ceiling((double)ActiveList.Count / 10);  // get number of tables
-                if (ActiveList.Count % numberOfTables == 0)         // new player fills the last table
-                {
-                    playerToSeat.Player_Seat.TableNumber = (uint)numberOfTables;
-
-                }
-                else   //  find the first opening and fill it.
-                {
-                    playerToSeat.Player_Seat.TableNumber = (uint)(ActiveList.Count % numberOfTables);
-                    // playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / (uint)numberOfTables + 1;
-                }
-                playerToSeat.Player_Seat.SeatNumber = (uint)Math.Ceiling((double)ActiveList.Count / (double)numberOfTables);
+                playerToSeat.Player_Seat.TableNumber = (uint)(ActiveList.Count % numberOfTables);
+                // playerToSeat.Player_Seat.SeatNumber = (uint)ActiveList.Count / (uint)numberOfTables + 1;
             }
-
-            StartingNumberOfPlayers++;  // add to starting number of players (to be used to determine payout structure)
-        }
-        /// <summary>
-        /// Randomize the order of the list of objects
-        /// </summary>
-        /// <typeparam name="T">Data Model of list to shuffle</typeparam>
-        /// <param name="list">List to randomized</param>
-        public void Shuffle<T>(IList<T> list)
-        {
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
-            }
-        }
-        /// <summary>
-        /// Reset players, startingNumberOfPlayers.
-        /// </summary>
-        public void ResetPlayers()
-        {
-            ActiveList.Clear();
-            StartingNumberOfPlayers = 0;
-            NotifyDataChanged();
+            playerToSeat.Player_Seat.SeatNumber = (uint)Math.Ceiling((double)ActiveList.Count / (double)numberOfTables);
         }
 
-        public void Dispose()
+        StartingNumberOfPlayers++;  // add to starting number of players (to be used to determine payout structure)
+    }
+    /// <summary>
+    /// Randomize the order of the list of objects
+    /// </summary>
+    /// <typeparam name="T">Data Model of list to shuffle</typeparam>
+    /// <param name="list">List to randomized</param>
+    public void Shuffle<T>(IList<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
         {
-            
+            n--;
+            int k = rng.Next(n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
         }
+    }
+    /// <summary>
+    /// Reset players, startingNumberOfPlayers.
+    /// </summary>
+    public void ResetPlayers()
+    {
+        ActiveList.Clear();
+        StartingNumberOfPlayers = 0;
+        NotifyDataChanged();
+    }
+
+    public void Dispose()
+    {
+        
     }
 }

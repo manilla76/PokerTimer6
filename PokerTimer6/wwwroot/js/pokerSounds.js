@@ -1,5 +1,11 @@
 ﻿window.pokerSounds = {
-    playLevelEnd: () => new Audio('/Sounds/mixkit-bell-notification-933.wav').play(),
-    playOneMinuteWarning: () => new Audio('/Sounds/mixkit-positive-notification-951.wav').play(),
-    playBreakStart: () => new Audio('/Sounds/mixkit-toy-robot-alert-2815.wav').play()
+    playLevelEnd: () => {
+        const audio = document.getElementById('levelEndAlert');
+        if (audio) {
+            audio.currentTime = 0;                   // rewind to start
+            audio.play().catch(err => {
+                console.warn('Audio play blocked or failed:', err);
+            });
+        }
+    }
 };

@@ -62,7 +62,7 @@ namespace PokerTimer6.Tests
             // Adjust to whatever your UI shows when not started
             cut.WaitForAssertion(() =>
             {
-                Assert.True(cut.Markup.Contains("Break")
+                Assert.True(cut.Markup.Contains("SB / BB")
                                           || cut.Markup.Contains("0:00")
                                           || cut.Markup.Contains("Start"));
             }, TimeSpan.FromSeconds(5));
