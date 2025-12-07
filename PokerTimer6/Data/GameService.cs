@@ -266,4 +266,30 @@ public class GameService(IPlayerService playerService, IPayoutService payoutServ
         var output = await data.LoadData<int>("select distinct Tournament_id from Rounds", new DynamicParameters());
         TournamentList = output.ToList();
     }
+
+    public Task UpdateRoundsAsync(Round round)
+    {
+        if (round is null ) throw new ArgumentNullException(nameof(round));
+
+        lock(_roundsLock)
+        {
+            var list = Rounds.ToList();
+            var idx = list.FindIndex(r => r.id == round.id);
+
+            if (idx >= 0)
+            {
+                list[idx].BigBlind = round.BigBlind;
+                list[idx].RoundMinutes = round.RoundMinutes;
+                list[idx].RoundTime = TimeSpan.FromMinutes((int)round.RoundMinutes!);
+                list[idx].SmallBlind = (int)((round.BigBlind ?? 0) / 2);
+            }
+            else
+            {
+                list.Add(round);
+            }
+            Rounds = new Queue<Round>(list);
+        }
+        NotifyDataChanged();
+        return Task.CompletedTask;
+    }
 }

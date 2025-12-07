@@ -21,5 +21,7 @@ namespace PokerTimer6.Data.Interfaces
         void SetActivePayout();
         void SetCurrentRound();
         void ShufflePlayers();
+        Task UpdateRoundsAsync(Round round);
+
     }
 }

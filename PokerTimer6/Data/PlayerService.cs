@@ -19,6 +19,7 @@ namespace PokerTimer6.Data;
 public class PlayerService(IDataAccess data) : IPlayerService, IDisposable
 {
     private Random rng = new Random();
+    private object _playersLock = new();
     private readonly IDataAccess data = data;
 
     public List<int> Dealers { get; set; } = new List<int>();
@@ -241,5 +242,28 @@ public class PlayerService(IDataAccess data) : IPlayerService, IDisposable
     public void Dispose()
     {
         
+    }
+
+    public Task UpdatePlayersAsync(Player player)
+    {
+        if (player is null)             throw new ArgumentNullException(nameof(player));
+
+        lock (_playersLock)
+        {
+            var existingPlayer = Players.FirstOrDefault(p => p.id == player.id);
+            if (existingPlayer != null)
+            {
+                existingPlayer.Name = player.Name;
+                existingPlayer.IsActive = player.IsActive;
+                existingPlayer.Table = player.Table;
+                existingPlayer.Seat = player.Seat;
+            }
+            else
+            {
+                Players.Add(player);
+            }
+            NotifyDataChanged();
+            return Task.CompletedTask;
+        }
     }
 }

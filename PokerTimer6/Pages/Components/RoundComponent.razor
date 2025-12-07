@@ -1,20 +1,162 @@
 ﻿@inject IGameService Game
-<td>
-    <button class="btn-close" @onclick="()=>Game.RemoveRound(round)" />
-</td>
-@if (@round.SmallBlind == 0)
-{
-    <td class="text-center text-primary" colspan="2">Break</td>
-}
-else
-{
-    <td class="text-end">@round.SmallBlind</td>
-    <td class="text-end">@round.BigBlind</td>
-}
-<td class="text-end">@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</td>
+    <td>
+        <button class="btn-close" @onclick="() => Game.RemoveRound(round)" />
+    </td>
+    @if (@round.SmallBlind == 0)
+    {
+        <td class="text-center text-primary" colspan="2">Break</td>
+    }
+    else
+    {
+        <td class="round-small text-end">@round.SmallBlind</td>
+        <td class="round-big editable-cell"
+        @ondblclick="@(() => BeginEdit("bigBlind"))">
+            @if (IsEditing && EditingField == "bigBlind")
+            {
+                <input @ref="inputRef" 
+                    type="number" 
+                    class="form-control input-inline" 
+                    @bind="editBuffer" 
+                    @onblur="OnBlur" 
+                    @onkeyup="OnKeyUpAsync" />
+            }
+            else
+            {
+                <span><div class="round-big text-end">@round.BigBlind</div></span>
+            }
+        </td>
+        
+    }
+    <td class="round-minutes editable-cell text-end" @ondblclick="@(() => BeginEdit("minutes"))">
+        @if (IsEditing && EditingField == "minutes")
+        {
+            <input @ref="inputRef" 
+                type="number" 
+                class="form-control input-inline" 
+                @bind="editBuffer" 
+                @onblur="OnBlur" 
+                @onkeyup="OnKeyUpAsync" />
+        }
+        else
+        {
+            <span>@round.RoundTime.Minutes:@round.RoundTime.Seconds.ToString("00")</span>
+        }
+        
+        </td>
+
+
+
+
 <td />
 
 @code {
     [Parameter]
     public Round round { get; set; } = new Round();
+    [Parameter]
+    public EventCallback<Round> OnUpdated { get; set; }
+
+    private bool IsEditing = false;
+    private string EditingField = string.Empty;
+    private string editBuffer = string.Empty;
+    private ElementReference inputRef;
+
+    protected override void OnParametersSet()
+    {
+        if (!IsEditing) editBuffer = EditingField == "bigBlind" ? (round.BigBlind ?? 0).ToString()  : (round.RoundTime.TotalMinutes.ToString());
+    }
+    private async void BeginEdit(string field)
+    {
+        EditingField = field;
+        IsEditing = true;
+        editBuffer = field == "bigBlind" ? (round.BigBlind ?? 0).ToString()  : ((int)round.RoundTime.TotalMinutes).ToString(); 
+        StateHasChanged();
+        await Task.Yield();
+        try { await inputRef.FocusAsync(); } catch { }
+    }
+    private async Task OnBlur(FocusEventArgs _)
+    {
+        //await Task.Yield();
+        await CommitAsync();
+    }
+
+    private async Task OnKeyUpAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await Task.Yield();
+            await CommitAsync();
+        }
+        else if (e.Key == "Escape")
+        {
+            CancelEdit();
+        }
+    }
+
+    private async Task CommitAsync()
+    {
+        if (!IsEditing) return;
+
+        if (EditingField == "bigBlind")
+        {
+            if (!int.TryParse(editBuffer, out int newBig) || newBig < 0)
+            {
+                CancelEdit();
+                return;
+            }
+
+            var oldBig = round.BigBlind ?? 0;
+            round.BigBlind = newBig;
+            round.SmallBlind = (int)(newBig / 2);
+            IsEditing = false;
+            EditingField = string.Empty;
+            StateHasChanged();
+
+            try
+            {
+                await Game.UpdateRoundsAsync(round);
+                if (OnUpdated.HasDelegate) await OnUpdated.InvokeAsync(round);
+            }
+            catch (Exception ex)
+            {
+                round.BigBlind = oldBig;
+                round.SmallBlind = (int)(oldBig / 2);
+                Console.Error.WriteLine($"Error updating round: {ex.Message}");
+                StateHasChanged();
+            }
+        }
+        else if (EditingField == "minutes")
+        {
+            if (!int.TryParse(editBuffer, out int newMinutes) || newMinutes < 0)
+            {
+                CancelEdit();
+                return;
+            }
+
+            var oldTime = round.RoundTime;
+            round.RoundTime = TimeSpan.FromMinutes(newMinutes);
+            round.Time = newMinutes;
+            round.RoundMinutes = newMinutes;
+            IsEditing = false;
+            EditingField = string.Empty;
+            StateHasChanged();
+
+            try
+            {
+                await Game.UpdateRoundsAsync(round);
+                if (OnUpdated.HasDelegate) await OnUpdated.InvokeAsync(round);
+            }
+            catch (Exception ex)
+            {
+                round.RoundTime = oldTime;
+                Console.Error.WriteLine($"Error updating round: {ex.Message}");
+                StateHasChanged();
+            }
+        }
+    }
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        EditingField = string.Empty;
+        StateHasChanged();
+    }
 }

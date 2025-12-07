@@ -25,5 +25,6 @@ namespace PokerTimer6.Data.Interfaces
         Task LoadPlayers();
         Task<List<Player>> GetPlayerNames();
         Task<uint> GetNextID();
+        Task UpdatePlayersAsync(Player player);
     }
 }

@@ -1,12 +1,102 @@
 ﻿@inject IPlayerService Player
 
-<td><button @onclick="()=>Player.RemovePlayer(player)"><i class="oi oi-trash"></i></button></td>
-<td class="h5">@player.Name</td>
+<td><button @onclick="() => Player.RemovePlayer(player)"><i class="oi oi-trash"></i></button></td>
+<div class=" = " player-name editable-cell" @ondblclick="@BeginEdit" title="Double-click to edit name">
+    @if (IsEditing)
+    {
+        <input @ref="inputRef" type="text" class="form-control input-inline" @bind="editBuffer" @onblur="OnBlur" @onkeydown="OnKeyDown" />
+    }
+    else
+    {
+        <td class="h5">@player.Name</td>
+    }
+</div>
 <td align="center">@player.Player_Seat.TableNumber / @player.Player_Seat.SeatNumber</td>
 <td><input type="checkbox" @bind="@player.IsActive" /></td>
 <td />
 
+
 @code {
     [Parameter]
-    public Player player { get; set; } = new Player();
+    public Player player { get; set; } = default!;
+    [Parameter]
+    public EventCallback<Player> OnUpdated { get; set; }
+    private bool IsEditing = false;
+    private string editBuffer = string.Empty;
+    private bool Hover = false;
+    private ElementReference inputRef;
+
+    protected override void OnParametersSet()
+    {
+        editBuffer = player?.Name ?? string.Empty;
+    }
+
+    private async Task BeginEdit()
+    {
+        if (player == null) return;
+        IsEditing = true;
+        editBuffer = player.Name ?? string.Empty;
+        StateHasChanged();
+        // focus after render
+        await Task.Yield();
+        try { await inputRef.FocusAsync(); } catch { }
+    }
+
+    private async Task OnBlur(FocusEventArgs _)
+    {
+        await CommitAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await CommitAsync();
+        }
+        else if (e.Key == "Escape")
+        {
+            CancelEdit();
+        }
+    }
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        editBuffer = player.Name ?? string.Empty;
+        StateHasChanged();
+    }
+    private async Task CommitAsync()
+    {
+        var trimmed = (editBuffer ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            CancelEdit();
+            return;
+        }
+        if (trimmed == player.Name)
+        {
+            IsEditing = false;
+            StateHasChanged();
+            return;
+        }
+        var oldName = player.Name;
+        player.Name = trimmed;
+        IsEditing = false;
+        StateHasChanged();
+
+        try
+        {
+            if (OnUpdated.HasDelegate)
+            {
+                await Player.UpdatePlayersAsync(player);
+                await OnUpdated.InvokeAsync(player);
+            }
+        }
+        catch (Exception ex)
+        {
+            player.Name = oldName;
+            Console.Error.WriteLine($"Error updating player: {ex.Message}");
+            StateHasChanged();
+        }
+    }
 }
+
